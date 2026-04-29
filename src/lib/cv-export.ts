@@ -229,58 +229,33 @@ async function validateImages(source: HTMLElement, warnings: ExportWarning[]) {
 
 
 /* =========================================================================
- * Standalone HTML
+ * Shared canvas snapshot
+ *
+ * Renders the live preview offscreen at 2× scale with embedded fonts so the
+ * output matches what the user sees, regardless of which file format we wrap
+ * around it. Returns the full canvas plus a list of warnings about anything
+ * that couldn't be embedded (CORS-blocked fonts/images).
  * ====================================================================== */
 
-export async function buildStandaloneHtml(source: HTMLElement, title: string): Promise<string> {
-  // Make sure web fonts are ready before snapshotting computed styles
-  if ((document as any).fonts?.ready) await (document as any).fonts.ready;
-
-  const clone = source.cloneNode(true) as HTMLElement;
-  stripControls(clone);
-  inlineComputedStyles(source, clone);
-
-  const cs = window.getComputedStyle(source);
-  const wrapStyle =
-    `width:${A4_W_MM}mm;min-height:${A4_H_MM}mm;margin:0 auto;background:#fff;` +
-    `color:${cs.color};font-family:${cs.fontFamily};`;
-
-  const fontCss = await collectEmbeddedFontCss();
-
-  return `<!doctype html><html lang="en"><head>
-<meta charset="utf-8">
-<title>${escapeHtml(title)}</title>
-<style>
-@page { size: A4; margin: 0; }
-html,body{margin:0;padding:0;background:#fff;}
-*{box-sizing:border-box;}
-img{max-width:100%;}
-${fontCss}
-</style></head>
-<body><div style="${wrapStyle}">${clone.outerHTML}</div></body></html>`;
+interface Snapshot {
+  canvas: HTMLCanvasElement;
+  warnings: ExportWarning[];
+  pages: { dataUrl: string; widthPx: number; heightPx: number; pxPerMm: number }[];
 }
 
-export async function exportToHtml(source: HTMLElement, filename: string) {
-  const html = await buildStandaloneHtml(source, filename);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  saveAs(blob, filename.endsWith(".html") ? filename : `${filename}.html`);
-}
-
-/* =========================================================================
- * PDF (multi-page A4, pixel-accurate via html2canvas)
- * ====================================================================== */
-
-export async function exportToPdf(source: HTMLElement, filename: string) {
+async function renderSnapshot(source: HTMLElement): Promise<Snapshot> {
   if ((document as any).fonts?.ready) await (document as any).fonts.ready;
+
+  const warnings: ExportWarning[] = [];
+  await validateImages(source, warnings);
 
   const clone = source.cloneNode(true) as HTMLElement;
   stripControls(clone);
 
   const holder = document.createElement("div");
   holder.style.cssText = `position:fixed;left:-10000px;top:0;width:${source.offsetWidth}px;background:#fff;`;
-  // Re-inject embedded fonts into the offscreen clone so html2canvas paints them
   const fontStyle = document.createElement("style");
-  fontStyle.textContent = await collectEmbeddedFontCss();
+  fontStyle.textContent = await collectEmbeddedFontCss(warnings);
   holder.appendChild(fontStyle);
   holder.appendChild(clone);
   document.body.appendChild(holder);
@@ -306,371 +281,158 @@ export async function exportToPdf(source: HTMLElement, filename: string) {
       windowWidth: source.scrollWidth,
     });
 
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    const imgWmm = A4_W_MM;
-    const pxPerMm = canvas.width / imgWmm;
+    // Slice into A4 pages
+    const pxPerMm = canvas.width / A4_W_MM;
     const pageHpx = A4_H_MM * pxPerMm;
-
+    const pages: Snapshot["pages"] = [];
     let y = 0;
-    let pageIndex = 0;
     while (y < canvas.height) {
       const sliceH = Math.min(pageHpx, canvas.height - y);
-      const pageCanvas = document.createElement("canvas");
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sliceH;
-      const ctx = pageCanvas.getContext("2d")!;
+      const c = document.createElement("canvas");
+      c.width = canvas.width;
+      c.height = sliceH;
+      const ctx = c.getContext("2d")!;
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      ctx.fillRect(0, 0, c.width, c.height);
       ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-      const imgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-      if (pageIndex > 0) pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWmm, sliceH / pxPerMm);
+      pages.push({
+        dataUrl: c.toDataURL("image/png"),
+        widthPx: c.width,
+        heightPx: c.height,
+        pxPerMm,
+      });
       y += sliceH;
-      pageIndex++;
     }
-    pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
+
+    return { canvas, warnings, pages };
   } finally {
     document.body.removeChild(holder);
   }
 }
 
 /* =========================================================================
- * DOCX export (real Office Open XML)
- *
- * Walks the live preview DOM and converts headings, paragraphs, lists, and
- * images into docx primitives that preserve typography (font, size, weight,
- * color, alignment) so the file opens cleanly in Word/Google Docs.
+ * Standalone HTML — embeds the live snapshot as paginated images so the file
+ * renders identically to the on-screen preview in any browser.
  * ====================================================================== */
 
-function pxToHalfPt(px: number): number {
-  // 1pt = 1.333px → halfPt = (px / 1.333) * 2 = px * 1.5
-  return Math.max(2, Math.round(px * 1.5));
+export async function buildStandaloneHtml(source: HTMLElement, title: string): Promise<{ html: string; warnings: ExportWarning[] }> {
+  const snap = await renderSnapshot(source);
+  const pagesHtml = snap.pages
+    .map(
+      (p) => `<section class="page"><img src="${p.dataUrl}" alt=""/></section>`
+    )
+    .join("");
+
+  const html = `<!doctype html><html lang="en"><head>
+<meta charset="utf-8">
+<title>${escapeHtml(title)}</title>
+<style>
+  @page { size: A4; margin: 0; }
+  html,body{margin:0;padding:0;background:#e5e7eb;font-family:system-ui,sans-serif;}
+  .page{
+    width:${A4_W_MM}mm;
+    height:${A4_H_MM}mm;
+    margin:8mm auto;
+    background:#fff;
+    box-shadow:0 4px 24px rgba(0,0,0,.12);
+    overflow:hidden;
+    page-break-after:always;
+    break-after:page;
+  }
+  .page:last-child{page-break-after:auto;break-after:auto;margin-bottom:0;}
+  .page img{display:block;width:100%;height:100%;object-fit:cover;}
+  @media print{ html,body{background:#fff;} .page{box-shadow:none;margin:0;} }
+</style></head>
+<body>${pagesHtml}</body></html>`;
+
+  return { html, warnings: snap.warnings };
 }
 
-function rgbToHex(rgb: string): string | undefined {
-  const m = rgb.match(/rgba?\(([^)]+)\)/);
-  if (!m) return undefined;
-  const [r, g, b] = m[1].split(",").map((s) => parseInt(s.trim(), 10));
-  if ([r, g, b].some((n) => Number.isNaN(n))) return undefined;
-  return [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("").toUpperCase();
+export async function exportToHtml(source: HTMLElement, filename: string): Promise<ExportWarning[]> {
+  const { html, warnings } = await buildStandaloneHtml(source, filename);
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  saveAs(blob, filename.endsWith(".html") ? filename : `${filename}.html`);
+  return warnings;
 }
 
-function firstFontFamily(ff: string): string {
-  return (ff || "").split(",")[0].replace(/['"]/g, "").trim() || "Calibri";
+/* =========================================================================
+ * PDF — multi-page A4
+ * ====================================================================== */
+
+export async function exportToPdf(source: HTMLElement, filename: string): Promise<ExportWarning[]> {
+  const snap = await renderSnapshot(source);
+  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  snap.pages.forEach((p, i) => {
+    if (i > 0) pdf.addPage();
+    const heightMm = p.heightPx / p.pxPerMm;
+    pdf.addImage(p.dataUrl, "PNG", 0, 0, A4_W_MM, heightMm);
+  });
+  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
+  return snap.warnings;
 }
 
-interface RunStyle {
-  bold?: boolean;
-  italic?: boolean;
-  underline?: { type?: "single" } | undefined;
-  size?: number;
-  color?: string;
-  font?: string;
+/* =========================================================================
+ * DOCX — embeds the snapshot as full-page images, one per A4 page.
+ * Layout, fonts, colors, and lists all render exactly like the preview
+ * because Word displays the same image the user sees.
+ * ====================================================================== */
+
+function dataUrlToUint8(dataUrl: string): Uint8Array {
+  const base64 = dataUrl.split(",")[1] || "";
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
 }
 
-function getRunStyle(el: HTMLElement): RunStyle {
-  const cs = window.getComputedStyle(el);
-  return {
-    bold: parseInt(cs.fontWeight, 10) >= 600 || cs.fontWeight === "bold",
-    italic: cs.fontStyle === "italic",
-    underline: cs.textDecorationLine.includes("underline") ? {} : undefined,
-    size: pxToHalfPt(parseFloat(cs.fontSize) || 14),
-    color: rgbToHex(cs.color),
-    font: firstFontFamily(cs.fontFamily),
-  };
-}
+export async function exportToDocx(source: HTMLElement, filename: string): Promise<ExportWarning[]> {
+  const snap = await renderSnapshot(source);
 
-function nodeToRuns(node: Node, inherited: RunStyle): TextRun[] {
-  const out: TextRun[] = [];
-  if (node.nodeType === Node.TEXT_NODE) {
-    const text = node.textContent || "";
-    if (text.trim() === "") return out;
-    out.push(new TextRun({ text, ...inherited }));
-    return out;
-  }
-  if (node.nodeType !== Node.ELEMENT_NODE) return out;
-  const el = node as HTMLElement;
-  if (el.dataset.cvTool || el.dataset.addBtn || el.dataset.sectionCtrl) return out;
-  const style: RunStyle = { ...inherited, ...getRunStyle(el) };
-  if (el.tagName === "BR") {
-    out.push(new TextRun({ text: "", break: 1 }));
-    return out;
-  }
-  for (const child of Array.from(el.childNodes)) {
-    out.push(...nodeToRuns(child, style));
-  }
-  return out;
-}
+  // Word page = A4 with 0 margins → image fills the page (210 × 297 mm).
+  // docx ImageRun.transformation expects pixels at 96 DPI.
+  // 210mm × (96/25.4) ≈ 793.7 px wide
+  const pageWpx = Math.round((A4_W_MM * 96) / 25.4);
+  const pageHpx = Math.round((A4_H_MM * 96) / 25.4);
 
-function alignmentFor(el: HTMLElement): (typeof AlignmentType)[keyof typeof AlignmentType] | undefined {
-  const ta = window.getComputedStyle(el).textAlign;
-  if (ta === "center") return AlignmentType.CENTER;
-  if (ta === "right") return AlignmentType.RIGHT;
-  if (ta === "justify") return AlignmentType.JUSTIFIED;
-  return AlignmentType.LEFT;
-}
-
-function headingLevelFor(tag: string): (typeof HeadingLevel)[keyof typeof HeadingLevel] | undefined {
-  switch (tag) {
-    case "H1": return HeadingLevel.HEADING_1;
-    case "H2": return HeadingLevel.HEADING_2;
-    case "H3": return HeadingLevel.HEADING_3;
-    case "H4": return HeadingLevel.HEADING_4;
-    case "H5": return HeadingLevel.HEADING_5;
-    case "H6": return HeadingLevel.HEADING_6;
-    default: return undefined;
-  }
-}
-
-async function imageToBuffer(src: string): Promise<{ buffer: ArrayBuffer; type: "png" | "jpg" | "gif" } | null> {
-  try {
-    const res = await fetch(src, { mode: "cors" });
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    const buffer = await blob.arrayBuffer();
-    let type: "png" | "jpg" | "gif" = "png";
-    if (blob.type.includes("jpeg") || blob.type.includes("jpg")) type = "jpg";
-    else if (blob.type.includes("gif")) type = "gif";
-    return { buffer, type };
-  } catch {
-    return null;
-  }
-}
-
-/** CSS list-style-type → docx LevelFormat + numbering text template. */
-function listFormatFor(el: HTMLElement, ordered: boolean, level: number): {
-  format: (typeof LevelFormat)[keyof typeof LevelFormat];
-  text: string;
-} {
-  const lst = window.getComputedStyle(el).listStyleType || (ordered ? "decimal" : "disc");
-  if (!ordered) {
-    // CSS bullets — pick a glyph per nesting level if not explicitly set
-    const glyphByLevel = ["•", "◦", "▪", "‣", "·"];
-    const map: Record<string, string> = {
-      disc: "•",
-      circle: "◦",
-      square: "▪",
-      none: "",
-    };
-    const text = map[lst] ?? glyphByLevel[Math.min(level, glyphByLevel.length - 1)];
-    return { format: LevelFormat.BULLET, text };
-  }
-  // Ordered
-  const ref = `%${level + 1}`;
-  switch (lst) {
-    case "lower-alpha":
-    case "lower-latin":
-      return { format: LevelFormat.LOWER_LETTER, text: `${ref}.` };
-    case "upper-alpha":
-    case "upper-latin":
-      return { format: LevelFormat.UPPER_LETTER, text: `${ref}.` };
-    case "lower-roman":
-      return { format: LevelFormat.LOWER_ROMAN, text: `${ref}.` };
-    case "upper-roman":
-      return { format: LevelFormat.UPPER_ROMAN, text: `${ref}.` };
-    default:
-      return { format: LevelFormat.DECIMAL, text: `${ref}.` };
-  }
-}
-
-/** Pixel-based extra left indent (computed padding-left of the list element). */
-function extraIndentDxa(el: HTMLElement): number {
-  const cs = window.getComputedStyle(el);
-  const px = parseFloat(cs.paddingLeft || "0") + parseFloat(cs.marginLeft || "0");
-  // 1 inch = 96px = 1440 DXA → DXA = px * 15
-  return Math.max(0, Math.round(px * 15));
-}
-
-/** Walk the children of a single <li>: emit one paragraph for inline content,
- *  then recurse into nested lists / block children with an incremented level. */
-async function walkListItem(
-  li: HTMLElement,
-  ordered: boolean,
-  level: number,
-  numberingRefs: Set<string>,
-  blocks: Array<Paragraph | Table>
-) {
-  // Build a paragraph from the li's *direct* inline + leaf content (skip nested lists)
-  const inlineNodes: Node[] = [];
-  const blockChildren: HTMLElement[] = [];
-  for (const child of Array.from(li.childNodes)) {
-    if (child.nodeType === Node.ELEMENT_NODE) {
-      const tag = (child as HTMLElement).tagName;
-      if (tag === "UL" || tag === "OL") {
-        blockChildren.push(child as HTMLElement);
-        continue;
-      }
-    }
-    inlineNodes.push(child);
-  }
-
-  const baseStyle = getRunStyle(li);
-  const runs: TextRun[] = [];
-  for (const n of inlineNodes) runs.push(...nodeToRuns(n, baseStyle));
-  if (runs.length === 0) runs.push(new TextRun({ text: "" }));
-
-  const ref = ordered ? `ord-${level}` : `bul-${level}`;
-  numberingRefs.add(ref);
-
-  blocks.push(
-    new Paragraph({
-      children: runs,
-      alignment: alignmentFor(li),
-      numbering: { reference: ref, level },
-      spacing: { after: 60 },
-    })
-  );
-
-  // Recurse into nested lists / blocks within this li
-  for (const child of blockChildren) {
-    await walkList(child, level + 1, numberingRefs, blocks);
-  }
-}
-
-/** Walk a <ul> / <ol> at a given nesting level. */
-async function walkList(
-  list: HTMLElement,
-  level: number,
-  numberingRefs: Set<string>,
-  blocks: Array<Paragraph | Table>
-) {
-  const ordered = list.tagName === "OL";
-  const items = Array.from(list.children).filter((c) => c.tagName === "LI") as HTMLElement[];
-  for (const li of items) {
-    await walkListItem(li, ordered, Math.min(level, 4), numberingRefs, blocks);
-  }
-}
-
-async function walk(
-  el: HTMLElement,
-  blocks: Array<Paragraph | Table>,
-  numberingRefs: Set<string>
-) {
-  if (el.dataset.cvTool || el.dataset.addBtn || el.dataset.sectionCtrl) return;
-
-  const tag = el.tagName;
-
-  // Image
-  if (tag === "IMG") {
-    const src = (el as HTMLImageElement).src;
-    const img = await imageToBuffer(src);
-    if (img) {
-      const w = Math.min(500, (el as HTMLImageElement).width || 200);
-      const h = Math.min(500, (el as HTMLImageElement).height || 200);
-      blocks.push(
-        new Paragraph({
-          alignment: alignmentFor(el),
-          children: [
-            new ImageRun({
-              type: img.type as any,
-              data: img.buffer,
-              transformation: { width: w, height: h },
-            } as any),
-          ],
-        })
-      );
-    }
-    return;
-  }
-
-  // Lists (handles arbitrary nesting)
-  if (tag === "UL" || tag === "OL") {
-    await walkList(el, 0, numberingRefs, blocks);
-    return;
-  }
-
-  // Heading or paragraph-like leaf
-  const isLeafBlock =
-    /^(H[1-6]|P)$/.test(tag) ||
-    (tag === "DIV" &&
-      Array.from(el.children).every(
-        (c) => !["DIV", "SECTION", "ARTICLE", "UL", "OL", "TABLE", "HEADER", "FOOTER", "MAIN", "ASIDE"].includes(c.tagName)
-      ));
-
-  if (isLeafBlock) {
-    const text = (el.textContent || "").trim();
-    if (!text && !el.querySelector("img")) return;
-    const runs = nodeToRuns(el, getRunStyle(el));
-    if (runs.length === 0) return;
-    blocks.push(
-      new Paragraph({
-        children: runs,
-        heading: headingLevelFor(tag),
-        alignment: alignmentFor(el),
-        spacing: { after: 120 },
-      })
-    );
-    return;
-  }
-
-  // Container — recurse
-  for (const child of Array.from(el.children)) {
-    await walk(child as HTMLElement, blocks, numberingRefs);
-  }
-}
-
-export async function exportToDocx(source: HTMLElement, filename: string) {
-  if ((document as any).fonts?.ready) await (document as any).fonts.ready;
-
-  const clone = source.cloneNode(true) as HTMLElement;
-  stripControls(clone);
-  // Mount offscreen so getComputedStyle returns real values
-  const holder = document.createElement("div");
-  holder.style.cssText = `position:fixed;left:-10000px;top:0;width:${source.offsetWidth}px;background:#fff;`;
-  holder.appendChild(clone);
-  document.body.appendChild(holder);
-
-  try {
-    const blocks: Array<Paragraph | Table> = [];
-    const numberingRefs = new Set<string>();
-    await walk(clone, blocks, numberingRefs);
-    if (blocks.length === 0) blocks.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-
-    // Build one numbering config per used ref. Each ref defines a single
-    // level, but we vary indent/glyph by the level encoded in the ref name.
-    const bulletGlyphs = ["•", "◦", "▪", "‣", "·"];
-    const numberingConfig = Array.from(numberingRefs).map((ref) => {
-      const [kind, lvlStr] = ref.split("-");
-      const level = parseInt(lvlStr, 10) || 0;
-      const ordered = kind === "ord";
-      const indentLeft = 720 * (level + 1); // 0.5" per nest
-      return {
-        reference: ref,
-        levels: [
-          {
-            level: 0, // we always store at level 0 of this ref; indent encodes nesting
-            format: ordered ? LevelFormat.DECIMAL : LevelFormat.BULLET,
-            text: ordered ? "%1." : bulletGlyphs[Math.min(level, bulletGlyphs.length - 1)],
-            alignment: AlignmentType.LEFT,
-            style: { paragraph: { indent: { left: indentLeft, hanging: 360 } } },
-          },
-        ],
-      };
-    });
-
-    const doc = new Document({
-      numbering: { config: numberingConfig.length > 0 ? numberingConfig : [
-        { reference: "noop", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 360 } } } }] }
-      ] },
-      sections: [
-        {
-          properties: {
-            page: {
-              size: { width: 11906, height: 16838 }, // A4 in DXA
-              margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
-            },
-          },
-          children: blocks,
-        },
+  const paragraphs: Paragraph[] = snap.pages.map((p, idx) => {
+    const heightMm = p.heightPx / p.pxPerMm;
+    const heightPx = Math.round((heightMm * 96) / 25.4);
+    return new Paragraph({
+      spacing: { before: 0, after: 0 },
+      children: [
+        new ImageRun({
+          type: "png",
+          data: dataUrlToUint8(p.dataUrl),
+          transformation: { width: pageWpx, height: Math.min(pageHpx, heightPx) },
+        } as any),
       ],
+      pageBreakBefore: idx > 0,
     });
+  });
 
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, filename.endsWith(".docx") ? filename : `${filename}.docx`);
-  } finally {
-    document.body.removeChild(holder);
+  if (paragraphs.length === 0) {
+    paragraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
   }
+
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            size: { width: 11906, height: 16838 }, // A4 in DXA
+            margin: { top: 0, right: 0, bottom: 0, left: 0, header: 0, footer: 0, gutter: 0 },
+          },
+        },
+        children: paragraphs,
+      },
+    ],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, filename.endsWith(".docx") ? filename : `${filename}.docx`);
+  return snap.warnings;
 }
+
 
 /* =========================================================================
  * Utilities
