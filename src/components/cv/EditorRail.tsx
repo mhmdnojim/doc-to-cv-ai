@@ -97,10 +97,10 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
     }
   };
 
-  const runMagic = async (mode?: "improve" | "shorten" | "expand") => {
+  const generateMagic = async (mode?: "improve" | "shorten" | "expand") => {
     const selection = lastSelection.trim();
     if (!selection && !prompt.trim()) {
-      toast.error("Select text in the CV or type a prompt");
+      toast.error("Describe what you want to write");
       return;
     }
     setBusy(true);
@@ -112,22 +112,42 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
       if (data?.error) throw new Error(data.error);
       const text: string = data?.text || "";
       if (!text) throw new Error("No text returned");
-
-      if (selection && savedRange.current) {
-        // Replace the selected text in the editor
-        restoreSelection();
-        document.execCommand("insertText", false, text);
-      } else {
-        // No selection — copy to clipboard
-        await navigator.clipboard.writeText(text);
-        toast.success("AI text copied to clipboard");
-      }
-      setPrompt("");
+      setGeneratedText(text);
     } catch (e: any) {
       toast.error(e.message || "Magic Write failed");
     } finally {
       setBusy(false);
     }
+  };
+
+  const insertGenerated = () => {
+    if (!generatedText) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    if (savedRange.current && editor.contains(savedRange.current.commonAncestorContainer)) {
+      restoreSelection();
+      document.execCommand("insertText", false, generatedText);
+    } else {
+      // No selection: append to end of editor
+      editor.focus();
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      document.execCommand("insertText", false, "\n" + generatedText);
+    }
+    toast.success("Inserted into CV");
+    setMagicOpen(false);
+    setGeneratedText("");
+    setPrompt("");
+  };
+
+  const copyGenerated = async () => {
+    await navigator.clipboard.writeText(generatedText);
+    toast.success("Copied to clipboard");
   };
 
   return (
