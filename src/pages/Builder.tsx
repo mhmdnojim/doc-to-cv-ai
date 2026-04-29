@@ -90,7 +90,18 @@ const Builder = () => {
     setData(next);
   };
 
-  const loadSample = () => {
+  // Delete helpers
+  const touch = () => localStorage.setItem(HAS_DATA_KEY, "1");
+  const removeExperience = (id: string) => { touch(); setData({ ...data, experience: data.experience.filter(x => x.id !== id) }); };
+  const removeEducation = (id: string) => { touch(); setData({ ...data, education: data.education.filter(x => x.id !== id) }); };
+  const removeProject = (id: string) => { touch(); setData({ ...data, projects: data.projects.filter(x => x.id !== id) }); };
+  const removeSkill = (i: number) => { touch(); setData({ ...data, skills: data.skills.filter((_, idx) => idx !== i) }); };
+  const removeLanguage = (id: string) => { touch(); setData({ ...data, languages: data.languages.filter(x => x.id !== id) }); };
+  const clearContact = (field: "email" | "phone" | "location" | "website") => { touch(); setData({ ...data, [field]: "" }); };
+  const editContact = (field: "email" | "phone" | "location" | "website", label: string) => {
+    const v = prompt(`Edit ${label}:`, (data as any)[field] || "");
+    if (v !== null) { touch(); setData({ ...data, [field]: v }); }
+  };
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(SAMPLE_CV);
     toast.success("Sample loaded");
