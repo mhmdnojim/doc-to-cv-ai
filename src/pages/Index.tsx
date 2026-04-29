@@ -187,6 +187,7 @@ const Index = () => {
       </footer>
 
       <TemplateUploadDialog open={showUpload} onOpenChange={setShowUpload} onCreated={() => { /* template saved */ }} />
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
     </div>
   );
 };
