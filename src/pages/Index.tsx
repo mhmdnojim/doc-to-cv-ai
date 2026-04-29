@@ -128,11 +128,35 @@ const Index = () => {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">No templates match your search.</div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map(t => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Permanent Create-new-template card */}
+          <button
+            onClick={() => setShowUpload(true)}
+            className="group text-left"
+            aria-label="Create new template from screenshot"
+          >
+            <div className="aspect-[210/297] rounded-xl overflow-hidden border-2 border-dashed border-primary/40 bg-gradient-to-br from-violet-50 via-white to-cyan-50 shadow-soft group-hover:shadow-elegant group-hover:border-primary transition-base relative flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow mb-4">
+                <ImagePlus className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <h3 className="font-semibold text-base text-slate-900">Create new template</h3>
+              <p className="text-xs text-muted-foreground mt-2 px-2">
+                Upload a screenshot of any CV and AI will recreate it as a template.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                <Sparkles className="w-3.5 h-3.5" /> AI powered
+              </span>
+            </div>
+            <div className="mt-3">
+              <h3 className="font-semibold text-sm">Your template</h3>
+              <p className="text-xs text-muted-foreground line-clamp-1">Upload a screenshot to begin</p>
+            </div>
+          </button>
+
+          {filtered.length === 0 ? (
+            <div className="col-span-full text-center py-20 text-muted-foreground">No templates match your search.</div>
+          ) : (
+            filtered.map(t => (
               <button
                 key={t.id}
                 onClick={() => navigate(`/builder?template=${t.id}`)}
@@ -151,9 +175,9 @@ const Index = () => {
                   <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
                 </div>
               </button>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </section>
 
       <footer className="border-t border-border py-8">
