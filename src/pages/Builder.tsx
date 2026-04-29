@@ -373,6 +373,56 @@ const Builder = () => {
                   );
                 })}
               </div>
+
+              {/* My templates */}
+              <div className="mt-5 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">My templates</h4>
+                  <button
+                    onClick={() => user ? setShowTplDialog(true) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
+                    className="text-primary hover:text-primary/80"
+                    title="Upload screenshot to create a template"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                  </button>
+                </div>
+                {!user ? (
+                  <p className="text-[11px] text-muted-foreground px-1"><Link to="/auth" className="text-primary hover:underline">Sign in</Link> to upload your own templates.</p>
+                ) : userTemplates.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground px-1">No custom templates yet. Click <ImagePlus className="w-3 h-3 inline" /> to upload a screenshot.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {userTemplates.map(t => {
+                      const active = t.id === template;
+                      return (
+                        <div key={t.id} className="relative group">
+                          <button
+                            onClick={() => handleTemplateChange(t.id)}
+                            className={`block w-full rounded-lg overflow-hidden border-2 transition-base ${active ? "border-primary shadow-glow" : "border-border hover:border-primary/50"}`}
+                          >
+                            <div className="aspect-[210/297] bg-white relative overflow-hidden">
+                              <div className="absolute inset-0 origin-top-left scale-[0.13]">
+                                <CVPreview data={data} template={t.id} userTemplateHtml={t.html} />
+                              </div>
+                            </div>
+                            <div className="px-2 py-1.5 text-[11px] font-medium text-left bg-card flex items-center justify-between">
+                              <span className="truncate">{t.name}</span>
+                              {active && <Check className="w-3 h-3 text-primary shrink-0" />}
+                            </div>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-card/90 text-destructive opacity-0 group-hover:opacity-100 transition-base"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </aside>
           )}
 
