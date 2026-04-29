@@ -250,10 +250,7 @@ const Builder = () => {
           setTemplate(row.template);
           setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
           setManualPages(row.manual_pages || 1);
-          return;
-        }
-      }
-      // Else load most recent CV
+          bumpData();
       const { data: rows } = await supabase
         .from("saved_cvs")
         .select("*")
