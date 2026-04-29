@@ -104,12 +104,13 @@ export const AIUploader = ({ onExtracted }: Props) => {
               <Upload className="w-4 h-4 mr-2" /> Choose file
             </Button>
           ) : (
-            <Button onClick={() => window.location.assign("/auth")} variant="default" size="sm">
+            <Button onClick={() => setShowLogin(true)} variant="default" size="sm">
               Sign in to continue
             </Button>
           )}
         </>
       )}
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
     </div>
   );
 };
