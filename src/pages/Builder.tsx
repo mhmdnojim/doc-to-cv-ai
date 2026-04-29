@@ -513,8 +513,9 @@ const Builder = () => {
       {/* Upload-template dialog */}
       <TemplateUploadDialog
         open={showTplDialog}
-        onOpenChange={setShowTplDialog}
+        onOpenChange={(v) => { setShowTplDialog(v); if (!v) setEditingTemplate(null); }}
         onCreated={fetchUserTemplates}
+        editing={editingTemplate}
       />
 
       {/* Print-only area */}
