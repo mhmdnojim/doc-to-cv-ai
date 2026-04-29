@@ -23,6 +23,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const [query, setQuery] = useState("");
   const [showUpload, setShowUpload] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
 
   const filtered = useMemo(() => {
