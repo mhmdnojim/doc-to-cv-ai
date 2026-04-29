@@ -47,7 +47,7 @@ const Index = () => {
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => (user ? signOut() : navigate("/auth"))}
+              onClick={() => (user ? signOut() : setShowLogin(true))}
               title={user ? "Sign out" : "Sign in"}
               aria-label={user ? "Sign out" : "Sign in"}
               className="w-10 h-10 rounded-xl overflow-hidden border border-border hover:shadow-glow transition-base bg-white"
