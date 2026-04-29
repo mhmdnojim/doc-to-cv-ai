@@ -564,6 +564,19 @@ const Builder = () => {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => {
+                setShowUpload(true);
+                setTimeout(() => {
+                  document.getElementById("ai-import-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 60);
+              }}
+              title="Upload a CV file — AI will fill everything for you"
+            >
+              <Sparkles className="w-4 h-4 mr-2" /> Import with AI
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => addBlankPage()}
               title="Add a blank page"
             >
@@ -730,7 +743,7 @@ const Builder = () => {
           <div className="space-y-4">
             {/* Import section */}
             {showUpload && (
-              <div className="rounded-xl border border-border bg-card p-4 relative">
+              <div id="ai-import-panel" className="rounded-xl border border-border bg-card p-4 relative">
                 <button
                   onClick={() => setShowUpload(false)}
                   className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
