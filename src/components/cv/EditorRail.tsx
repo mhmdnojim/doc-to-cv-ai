@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare } from "lucide-react";
+import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { NewSectionTemplate } from "@/lib/cv-section-tools";
 
 type RailKey = "templates" | "add" | "text" | "magic";
 
@@ -15,6 +16,8 @@ interface AddActions {
   addLanguage: () => void;
   addProject: () => void;
   addCustomSection: (side: "left" | "right") => void;
+  /** Open the position picker dialog to insert a section at a specific spot */
+  addSectionAt: (spec: NewSectionTemplate) => void;
   loadSample: () => void;
   clearAll: () => void;
 }
