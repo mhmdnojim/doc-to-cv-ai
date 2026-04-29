@@ -8,6 +8,7 @@ import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
 import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -54,6 +55,7 @@ const Builder = () => {
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
+  const [useSampleData, setUseSampleData] = useState(false);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
@@ -636,12 +638,15 @@ const Builder = () => {
       </nav>
 
       {(() => {
-        // Use sample data for thumbnails when current CV is essentially empty,
-        // so previews always show meaningful content.
+        // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
         const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
-        const previewData = isEmptyCv ? SAMPLE_CV : data;
+        const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
+            <label className="flex items-center justify-between gap-2 mb-3 px-1 py-2 rounded-md bg-muted/40 border border-border cursor-pointer">
+              <span className="text-xs font-medium">Use sample data in previews</span>
+              <Switch checked={useSampleData} onCheckedChange={setUseSampleData} />
+            </label>
             <div className="grid grid-cols-2 gap-3">
               {TEMPLATES.map(t => {
                 const active = t.id === template;
