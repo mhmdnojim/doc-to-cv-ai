@@ -120,3 +120,23 @@
   }
   @page { margin: 0; size: A4; }
 }
+
+/* Editable CV — strong focus + pulse on freshly added items */
+.editable-cv [contenteditable], .editable-cv {
+  caret-color: hsl(var(--primary));
+}
+.editable-cv *:focus {
+  background: hsl(var(--primary) / 0.12) !important;
+  box-shadow: 0 0 0 2px hsl(var(--primary)) !important;
+  border-radius: 4px;
+  outline: none !important;
+}
+@keyframes just-added-pulse-anim {
+  0%   { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.18); }
+  70%  { box-shadow: 0 0 0 12px hsl(var(--primary) / 0); background: hsl(var(--primary) / 0.10); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); background: transparent; }
+}
+.just-added-pulse {
+  animation: just-added-pulse-anim 1.6s ease-out;
+  border-radius: 4px;
+}
