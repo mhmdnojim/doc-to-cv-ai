@@ -230,6 +230,33 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
           <div className="p-3">
             {active === "templates" && templatesPanel}
 
+            {active === "add" && (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">Add new sections or items to your CV.</p>
+                <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Sections</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" onClick={addActions.addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addProject} className="col-span-2"><Plus className="w-3 h-3 mr-1" />Project</Button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Custom section</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("left")}>← Left</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("right")}>Right →</Button>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+                  <button onClick={addActions.loadSample} className="text-primary hover:underline">Load sample</button>
+                  <button onClick={addActions.clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
+                </div>
+              </div>
+            )}
+
             {active === "text" && (
               <div className="space-y-4">
                 <p className="text-xs text-muted-foreground">
