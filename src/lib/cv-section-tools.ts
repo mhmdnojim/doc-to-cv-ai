@@ -617,6 +617,7 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         if (before) sec.el.parentElement?.insertBefore(sourceEl, sec.el);
         else sec.el.parentElement?.insertBefore(sourceEl, sec.el.nextSibling);
         opts.onReorder?.();
+        opts.onMutate?.();
         // Re-inject after reorder
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
@@ -629,6 +630,7 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         if (position === "before") sec.el.parentElement?.insertBefore(clone, sec.el);
         else sec.el.parentElement?.insertBefore(clone, sec.el.nextSibling);
         opts.onReorder?.();
+        opts.onMutate?.();
         setTimeout(() => injectSectionTools(root, opts), 30);
       };
       attachHoverFrame(sec.el, {
