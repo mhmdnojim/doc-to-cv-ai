@@ -157,14 +157,14 @@ export function listSections(root: HTMLElement): SectionInfo[] {
       : filtered;
 
     // Document order
-    filtered.sort((a, b) => {
+    finalList.sort((a, b) => {
       const pos = a.compareDocumentPosition(b);
       if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
       if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
       return 0;
     });
 
-    filtered.forEach(el => {
+    finalList.forEach(el => {
       if (!el.getAttribute(SECTION_ATTR)) el.setAttribute(SECTION_ATTR, `s${++sectionCounter}`);
       let title: string;
       if (el.hasAttribute(PERSONAL_INFO_ATTR)) {
