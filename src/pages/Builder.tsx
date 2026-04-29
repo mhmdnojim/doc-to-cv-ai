@@ -643,7 +643,11 @@ const Builder = () => {
 
         return (
           <div className="flex print:block lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
-            <EditorRail templatesPanel={templatesPanel} editorRef={editableRef} />
+            <EditorRail
+              templatesPanel={templatesPanel}
+              editorRef={editableRef}
+              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, loadSample, clearAll }}
+            />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden lg:overflow-y-auto lg:h-full">
 
