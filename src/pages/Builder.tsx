@@ -31,6 +31,37 @@ const Builder = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
+  // Inject "+" buttons next to section headings inside the editable CV
+  useEffect(() => {
+    const root = editableRef.current;
+    if (!root) return;
+    const t = setTimeout(() => {
+      const headings = root.querySelectorAll<HTMLElement>("h2, h3");
+      const sectionMap: Record<string, () => void> = {
+        experience: addExperience, "work experience": addExperience, "professional experience": addExperience,
+        education: addEducation,
+        skills: addSkill, "core competencies": addSkill, stack: addSkill,
+        languages: addLanguage,
+        projects: addProject,
+      };
+      headings.forEach(h => {
+        if (h.querySelector("[data-add-btn]")) return;
+        const text = (h.textContent || "").trim().toLowerCase().replace(/[\/\\]+/g, "").replace(/^\W+|\W+$/g, "");
+        const key = Object.keys(sectionMap).find(k => text.includes(k));
+        if (!key) return;
+        const btn = document.createElement("button");
+        btn.setAttribute("data-add-btn", "1");
+        btn.setAttribute("contenteditable", "false");
+        btn.title = `Add ${key}`;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
+        btn.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:8px;border-radius:9999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));cursor:pointer;border:none;vertical-align:middle;flex-shrink:0;";
+        btn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); sectionMap[key](); };
+        h.appendChild(btn);
+      });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [data, template]);
+
   const handleTemplateChange = (t: TemplateId) => {
     setTemplate(t);
     setSearchParams({ template: t });
@@ -38,11 +69,12 @@ const Builder = () => {
 
   const handleExport = () => {
     toast.success("Opening print dialog… save as PDF");
-    // Sync editable DOM into print area so manual text edits are preserved
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
-        printArea.innerHTML = editableRef.current.innerHTML;
+        const clone = editableRef.current.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("[data-add-btn]").forEach(el => el.remove());
+        printArea.innerHTML = clone.innerHTML;
       }
       window.print();
     }, 200);
@@ -230,110 +262,8 @@ const Builder = () => {
               </span>
             </div>
 
-            {/* Manage items panel */}
-            <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <Pencil className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold text-sm">Manage CV items</h3>
-                <span className="text-xs text-muted-foreground">— remove or edit any element</span>
-              </div>
-
-              {/* Contact */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Contact</h4>
-                <div className="flex flex-wrap gap-2">
-                  {(["email","phone","location","website"] as const).map(f => {
-                    const val = (data as any)[f] as string;
-                    return val ? (
-                      <span key={f} className="inline-flex items-center gap-1.5 text-xs bg-muted px-2 py-1 rounded-md group">
-                        <button onClick={() => editContact(f, f)} className="hover:text-primary">{val}</button>
-                        <button onClick={() => clearContact(f)} className="text-muted-foreground hover:text-destructive">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ) : (
-                      <button key={f} onClick={() => editContact(f, f)} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary">
-                        + {f}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Skills */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Skills ({data.skills.length})</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {data.skills.map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-md">
-                      {s}
-                      <button onClick={() => removeSkill(i)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                  <button onClick={addSkill} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary inline-flex items-center gap-1">
-                    <Plus className="w-3 h-3" /> Add skill
-                  </button>
-                </div>
-              </div>
-
-              {/* Languages */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Languages ({data.languages.length})</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {data.languages.map(l => (
-                    <span key={l.id} className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-md">
-                      {l.name} · {l.level}
-                      <button onClick={() => removeLanguage(l.id)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                  <button onClick={addLanguage} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary inline-flex items-center gap-1">
-                    <Plus className="w-3 h-3" /> Add language
-                  </button>
-                </div>
-              </div>
-
-              {/* Experience */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Experience ({data.experience.length})</h4>
-                <div className="space-y-1.5">
-                  {data.experience.map(e => (
-                    <div key={e.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
-                      <span className="truncate"><strong>{e.position || "Untitled"}</strong> — {e.company} <span className="text-muted-foreground">({e.startDate}–{e.endDate})</span></span>
-                      <button onClick={() => removeExperience(e.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Education */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Education ({data.education.length})</h4>
-                <div className="space-y-1.5">
-                  {data.education.map(e => (
-                    <div key={e.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
-                      <span className="truncate"><strong>{e.degree} {e.field}</strong> — {e.school} <span className="text-muted-foreground">({e.startDate}–{e.endDate})</span></span>
-                      <button onClick={() => removeEducation(e.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Projects */}
-              <div>
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Projects ({data.projects.length})</h4>
-                <div className="space-y-1.5">
-                  {data.projects.map(p => (
-                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
-                      <span className="truncate"><strong>{p.name}</strong> {p.link && <span className="text-muted-foreground">— {p.link}</span>}</span>
-                      <button onClick={() => removeProject(p.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             <p className="text-xs text-muted-foreground text-center">
-              ✨ Click any text on your CV to edit it directly
+              ✨ Click any text to edit · Hover any item for delete · Use + buttons on each section heading to add
             </p>
 
             {/* Editable CV preview */}
