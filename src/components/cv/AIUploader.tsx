@@ -4,18 +4,25 @@ import { Upload, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CVData, EMPTY_CV } from "@/lib/cv-types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   onExtracted: (data: CVData) => void;
 }
 
 export const AIUploader = ({ onExtracted }: Props) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     if (!file) return;
+    if (!user) {
+      toast.info("Please sign in to use AI import");
+      window.location.assign("/auth");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File too large. Max 10MB.");
       return;
