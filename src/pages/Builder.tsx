@@ -394,9 +394,6 @@ const Builder = () => {
             >
               <FilePlus className="w-4 h-4 mr-2" /> Add page
             </Button>
-            <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
-              <LayoutTemplate className="w-4 h-4 mr-2" />Templates
-            </Button>
             <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
               <Download className="w-4 h-4 mr-2" /> Export PDF
             </Button>
