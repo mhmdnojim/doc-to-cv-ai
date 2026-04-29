@@ -28,8 +28,10 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
   const [active, setActive] = useState<RailKey | null>("templates");
 
   // Magic Write state
+  const [magicOpen, setMagicOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
+  const [generatedText, setGeneratedText] = useState("");
   const [lastSelection, setLastSelection] = useState("");
   const savedRange = useRef<Range | null>(null);
   const [currentSize, setCurrentSize] = useState(14);
