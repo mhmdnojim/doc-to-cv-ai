@@ -592,42 +592,82 @@ const Builder = () => {
               ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
             </p>
 
-            {/* Editable CV preview — each page is its own A4 card with a toolbar */}
+            {/* Editable CV preview — main CV card + extra blank pages as separate cards */}
             <div className="flex flex-col items-center gap-8">
-              {Array.from({ length: totalPages }).map((_, i) => {
-                const isFirst = i === 0;
-                const isBlankUserPage = i + 1 > measuredPages;
-                const isFocused = focusedPage === i;
+              {/* Main CV card (covers all auto-measured pages) */}
+              <div
+                ref={(el) => { pageRefs.current[0] = el; }}
+                className="w-full flex flex-col items-center"
+                onMouseDown={() => setFocusedPage(0)}
+              >
+                <div className="flex items-center gap-2 mb-2 text-sm font-medium">
+                  <span className={focusedPage === 0 ? "text-primary" : "text-muted-foreground"}>
+                    Page {measuredPages > 1 ? `1–${measuredPages}` : "1"} <span className="text-muted-foreground">/ {totalPages}</span>
+                  </span>
+                </div>
+
+                <div
+                  className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                  style={{ transformOrigin: "top center" }}
+                >
+                  <div
+                    className={`relative bg-white shadow-elegant rounded-xl overflow-hidden transition-all ${
+                      focusedPage === 0 ? "ring-2 ring-primary ring-offset-4 ring-offset-background" : ""
+                    }`}
+                    style={{
+                      width: "210mm",
+                      minHeight: `calc(297mm * ${Math.max(1, measuredPages)})`,
+                      backgroundImage: measuredPages > 1
+                        ? `repeating-linear-gradient(to bottom, transparent 0, transparent calc(297mm - 1px), hsl(var(--border)) calc(297mm - 1px), hsl(var(--border)) 297mm)`
+                        : undefined,
+                    }}
+                  >
+                    <div
+                      ref={editableRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      spellCheck
+                      className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
+                      onFocus={() => setFocusedPage(0)}
+                    >
+                      <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Manually-added blank pages — each its own A4 card */}
+              {Array.from({ length: Math.max(0, manualPages - measuredPages) }).map((_, k) => {
+                const pageIdx = measuredPages + k; // 0-based index for refs/state
+                const pageNumber = pageIdx + 1;
+                const isFocused = focusedPage === pageIdx;
                 return (
                   <div
-                    key={i}
-                    ref={(el) => { pageRefs.current[i] = el; }}
+                    key={pageIdx}
+                    ref={(el) => { pageRefs.current[pageIdx] = el; }}
                     className="w-full flex flex-col items-center"
-                    onMouseDown={() => setFocusedPage(i)}
+                    onMouseDown={() => setFocusedPage(pageIdx)}
                   >
-                    {/* Page toolbar */}
                     <div className="flex items-center gap-2 mb-2 text-sm font-medium">
                       <span className={isFocused ? "text-primary" : "text-muted-foreground"}>
-                        Page {i + 1} <span className="text-muted-foreground">/ {totalPages}</span>
+                        Page {pageNumber} <span className="text-muted-foreground">/ {totalPages}</span>
                       </span>
-                      {isBlankUserPage && (
-                        <button
-                          onClick={() => {
-                            setManualPages(p => Math.max(1, p - 1));
-                            setBlankPageHtml(prev => {
-                              const { [i]: _, ...rest } = prev;
-                              return rest;
-                            });
-                          }}
-                          className="text-destructive hover:underline text-xs"
-                          title="Remove this blank page"
-                        >
-                          remove
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          setManualPages(p => Math.max(1, p - 1));
+                          setBlankPageHtml(prev => {
+                            const { [pageIdx]: _, ...rest } = prev;
+                            return rest;
+                          });
+                          if (focusedPage === pageIdx) setFocusedPage(0);
+                        }}
+                        className="text-destructive hover:underline text-xs"
+                        title="Remove this blank page"
+                      >
+                        remove
+                      </button>
                     </div>
 
-                    {/* Scaled A4 sheet */}
                     <div
                       className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
                       style={{ transformOrigin: "top center" }}
@@ -638,43 +678,18 @@ const Builder = () => {
                         }`}
                         style={{ width: "210mm", height: "297mm" }}
                       >
-                        {isFirst ? (
-                          // First page hosts the live CVPreview content
-                          <div
-                            ref={editableRef}
-                            contentEditable
-                            suppressContentEditableWarning
-                            spellCheck
-                            className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
-                            style={{
-                              // Show only the first 297mm window of the editor; remaining content
-                              // visually flows into the next page card below.
-                              minHeight: `calc(297mm * ${Math.max(1, measuredPages)})`,
-                            }}
-                            onFocus={() => setFocusedPage(0)}
-                          >
-                            <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
-                          </div>
-                        ) : i + 1 <= measuredPages ? (
-                          // Overflow page — visually a blank A4; the first page's tall content
-                          // already overlaps via negative offset trick.
-                          <div className="w-full h-full" />
-                        ) : (
-                          // Manually-added blank page — its own contenteditable canvas
-                          <div
-                            contentEditable
-                            suppressContentEditableWarning
-                            spellCheck
-                            className="editable-cv outline-none w-full h-full p-12 text-sm text-foreground"
-                            style={{ minHeight: "297mm" }}
-                            dangerouslySetInnerHTML={{ __html: blankPageHtml[i] || "<p style='color:#94a3b8'>Click here to start writing on this page…</p>" }}
-                            onInput={(e) => {
-                              const html = (e.currentTarget as HTMLDivElement).innerHTML;
-                              setBlankPageHtml(prev => ({ ...prev, [i]: html }));
-                            }}
-                            onFocus={() => setFocusedPage(i)}
-                          />
-                        )}
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          spellCheck
+                          className="editable-cv outline-none w-full h-full p-12 text-sm text-foreground"
+                          dangerouslySetInnerHTML={{ __html: blankPageHtml[pageIdx] || "<p style='color:#94a3b8'>Click here to start writing on this page…</p>" }}
+                          onInput={(e) => {
+                            const html = (e.currentTarget as HTMLDivElement).innerHTML;
+                            setBlankPageHtml(prev => ({ ...prev, [pageIdx]: html }));
+                          }}
+                          onFocus={() => setFocusedPage(pageIdx)}
+                        />
                       </div>
                     </div>
                   </div>
