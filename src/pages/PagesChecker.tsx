@@ -39,6 +39,27 @@ export default function PagesChecker() {
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get(HEALTH_QUERY_PARAM) !== "1" || window.parent === window) return;
+
+    const baseUrl = new URL(import.meta.env.BASE_URL || "/", window.location.origin).toString();
+    const builderRedirectUrl = new URL("builder", baseUrl).toString();
+
+    window.parent.postMessage(
+      {
+        type: HEALTH_MESSAGE_TYPE,
+        ok: true,
+        href: window.location.href,
+        pathname: window.location.pathname,
+        baseUrl,
+        builderRedirectUrl,
+        timestamp: Date.now(),
+      } satisfies HealthPayload,
+      window.location.origin
+    );
+  }, []);
+
+  useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -68,6 +89,8 @@ export default function PagesChecker() {
       { id: "run", title: "Latest workflow run succeeded", status: "pending" },
       { id: "pages", title: "GitHub Pages is enabled & live", status: "pending" },
       { id: "url", title: "Pages URL responds (200 OK)", status: "pending" },
+      { id: "built-site", title: "Built site loads in the browser", status: "pending" },
+      { id: "builder-redirect", title: "/builder login redirect keeps the repo path", status: "pending" },
     ];
     setChecks(initial);
 
