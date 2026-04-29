@@ -77,10 +77,20 @@ export const AIUploader = ({ onExtracted }: Props) => {
             <FileText className="w-6 h-6 text-primary-foreground" />
           </div>
           <h3 className="font-semibold mb-1">Upload your existing CV</h3>
-          <p className="text-xs text-muted-foreground mb-3">PDF, DOCX, or TXT — AI will extract everything</p>
-          <Button onClick={() => inputRef.current?.click()} variant="default" size="sm">
-            <Upload className="w-4 h-4 mr-2" /> Choose file
-          </Button>
+          <p className="text-xs text-muted-foreground mb-3">
+            {user
+              ? "PDF, DOCX, or TXT — AI will extract everything"
+              : "Sign in to use AI extraction (PDF, DOCX, or TXT)"}
+          </p>
+          {user ? (
+            <Button onClick={() => inputRef.current?.click()} variant="default" size="sm">
+              <Upload className="w-4 h-4 mr-2" /> Choose file
+            </Button>
+          ) : (
+            <Button onClick={() => window.location.assign("/auth")} variant="default" size="sm">
+              Sign in to continue
+            </Button>
+          )}
         </>
       )}
     </div>
