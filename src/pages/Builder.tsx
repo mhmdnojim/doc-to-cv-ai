@@ -941,6 +941,16 @@ const Builder = () => {
         editing={editingTemplate}
       />
 
+      {/* Section position picker */}
+      <SectionPositionDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        sections={pickerSections}
+        defaultSpec={pickerSpec}
+        onConfirm={performInsert}
+      />
+
+
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
         <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
