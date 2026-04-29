@@ -14,6 +14,12 @@ REQUIREMENTS:
 4. Replicate the visual layout, color palette, typography, columns, and section ordering of the screenshot AS CLOSELY AS POSSIBLE.
 5. Use these EXACT placeholder tokens that will be substituted at render time. Do NOT invent other tokens:
    {{fullName}}, {{jobTitle}}, {{email}}, {{phone}}, {{location}}, {{website}}, {{summary}}
+   PHOTO HANDLING — IMPORTANT:
+   - Look carefully at the screenshot. If it shows a profile photo, avatar circle, headshot area, or any reserved space for a personal picture (typically near the name/header), you MUST include a photo slot.
+   - Render the photo slot with the EXACT token {{photo}} as the src of an <img>, like:
+     <img src="{{photo}}" alt="" style="width:120px;height:120px;border-radius:50%;object-fit:cover;display:block;" />
+   - Match the original size, shape (circle/square/rounded), border, and position of the photo from the screenshot.
+   - If the screenshot has NO photo area at all, do NOT include {{photo}}.
    For lists, use these block markers — keep them on their own lines, do NOT wrap them in extra elements:
    {{#experience}} ... {{position}} ... {{company}} ... {{startDate}} ... {{endDate}} ... {{location}} ... {{description}} ... {{/experience}}
    {{#education}} ... {{degree}} ... {{field}} ... {{school}} ... {{startDate}} ... {{endDate}} ... {{/education}}
