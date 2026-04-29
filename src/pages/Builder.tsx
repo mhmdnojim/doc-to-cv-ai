@@ -57,6 +57,28 @@ const Builder = () => {
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
 
+  // ===== Ctrl/Cmd + scroll zoom on the CV preview area =====
+  // Holding Ctrl (or Cmd on macOS) and scrolling inside the CV area zooms
+  // the CV in/out without affecting the sidebar or the rest of the browser.
+  // Outside the CV area, the browser's native page-zoom still works as usual.
+  const cvZoomRef = useRef<HTMLDivElement>(null);
+  const [cvZoom, setCvZoom] = useState(1);
+  useEffect(() => {
+    const el = cvZoomRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      // deltaY < 0 => scroll up => zoom in
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      setCvZoom(z => Math.min(3, Math.max(0.3, +(z * factor).toFixed(3))));
+    };
+    // Must be non-passive to call preventDefault and stop the browser's
+    // built-in Ctrl+scroll page zoom while the cursor is over the CV.
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   // ===== Structural undo/redo =====
   // The CV is contentEditable, so the browser's native undo handles text edits.
   // But our custom JS-driven mutations (add/delete sections, add/delete subsections,
