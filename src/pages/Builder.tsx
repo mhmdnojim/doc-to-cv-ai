@@ -1130,6 +1130,8 @@ const Builder = () => {
         onConfirm={performInsert}
       />
 
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
+
 
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
