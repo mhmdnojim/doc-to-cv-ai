@@ -155,3 +155,11 @@
   animation: just-added-pulse-anim 1.6s ease-out;
   border-radius: 4px;
 }
+
+/* Page zoom for the CV cards. Uses CSS `zoom` so the layout actually shrinks
+   (no huge empty gap below the page). Responsive matches the previous
+   transform: scale() breakpoints. */
+.cv-page-zoom { zoom: 0.6; }
+@media (min-width: 640px)  { .cv-page-zoom { zoom: 0.7; } }
+@media (min-width: 1024px) { .cv-page-zoom { zoom: 0.8; } }
+@media (min-width: 1280px) { .cv-page-zoom { zoom: 0.9; } }
