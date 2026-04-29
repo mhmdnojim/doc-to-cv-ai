@@ -565,6 +565,11 @@ const Builder = () => {
               variant="outline"
               size="sm"
               onClick={() => {
+                if (!user) {
+                  toast.info("Please sign in to import your CV with AI");
+                  window.location.assign("/auth");
+                  return;
+                }
                 setShowUpload(true);
                 setTimeout(() => {
                   document.getElementById("ai-import-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -4,18 +4,25 @@ import { Upload, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CVData, EMPTY_CV } from "@/lib/cv-types";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   onExtracted: (data: CVData) => void;
 }
 
 export const AIUploader = ({ onExtracted }: Props) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     if (!file) return;
+    if (!user) {
+      toast.info("Please sign in to use AI import");
+      window.location.assign("/auth");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File too large. Max 10MB.");
       return;
@@ -70,10 +77,20 @@ export const AIUploader = ({ onExtracted }: Props) => {
             <FileText className="w-6 h-6 text-primary-foreground" />
           </div>
           <h3 className="font-semibold mb-1">Upload your existing CV</h3>
-          <p className="text-xs text-muted-foreground mb-3">PDF, DOCX, or TXT — AI will extract everything</p>
-          <Button onClick={() => inputRef.current?.click()} variant="default" size="sm">
-            <Upload className="w-4 h-4 mr-2" /> Choose file
-          </Button>
+          <p className="text-xs text-muted-foreground mb-3">
+            {user
+              ? "PDF, DOCX, or TXT — AI will extract everything"
+              : "Sign in to use AI extraction (PDF, DOCX, or TXT)"}
+          </p>
+          {user ? (
+            <Button onClick={() => inputRef.current?.click()} variant="default" size="sm">
+              <Upload className="w-4 h-4 mr-2" /> Choose file
+            </Button>
+          ) : (
+            <Button onClick={() => window.location.assign("/auth")} variant="default" size="sm">
+              Sign in to continue
+            </Button>
+          )}
         </>
       )}
     </div>

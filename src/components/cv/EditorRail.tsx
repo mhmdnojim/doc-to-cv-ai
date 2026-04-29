@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { NewSectionTemplate } from "@/lib/cv-section-tools";
+import { useAuth } from "@/hooks/useAuth";
 
 type RailKey = "templates" | "add" | "text" | "magic";
 
@@ -42,6 +43,7 @@ const MIN_FONT = 8;
 const MAX_FONT = 72;
 
 export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
+  const { user } = useAuth();
   const [active, setActive] = useState<RailKey | null>("templates");
 
   // Magic Write state
@@ -137,6 +139,11 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
   };
 
   const generateMagic = async (mode?: "improve" | "shorten" | "expand") => {
+    if (!user) {
+      toast.info("Please sign in to use Magic Write");
+      window.location.assign("/auth");
+      return;
+    }
     const selection = lastSelection.trim();
     if (!selection && !prompt.trim()) {
       toast.error("Describe what you want to write");
@@ -201,6 +208,11 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
               key={item.key}
               onClick={() => {
                 if (item.key === "magic") {
+                  if (!user) {
+                    toast.info("Please sign in to use Magic Write");
+                    window.location.assign("/auth");
+                    return;
+                  }
                   setMagicOpen(true);
                   return;
                 }
