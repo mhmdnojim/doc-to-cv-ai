@@ -57,6 +57,53 @@ const Builder = () => {
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
 
+  // ===== Structural undo/redo =====
+  // The CV is contentEditable, so the browser's native undo handles text edits.
+  // But our custom JS-driven mutations (add/delete sections, add/delete subsections,
+  // clone above/below, drag-reorder) are NOT in the browser's undo stack — we
+  // maintain our own snapshot history of the editable HTML for those.
+  const historyRef = useRef<{ stack: string[]; index: number; suspend: boolean }>({
+    stack: [], index: -1, suspend: false,
+  });
+  const [historyTick, setHistoryTick] = useState(0); // re-render when stack changes
+  const snapshotHistory = useCallback(() => {
+    const root = editableRef.current;
+    if (!root || historyRef.current.suspend) return;
+    const html = root.innerHTML;
+    const h = historyRef.current;
+    if (h.stack[h.index] === html) return; // no change
+    // Drop any redo branch
+    h.stack = h.stack.slice(0, h.index + 1);
+    h.stack.push(html);
+    if (h.stack.length > 100) { h.stack.shift(); h.index = h.stack.length - 1; }
+    else h.index = h.stack.length - 1;
+    setHistoryTick(t => t + 1);
+  }, []);
+  const restoreSnapshot = useCallback((html: string) => {
+    const root = editableRef.current;
+    if (!root) return;
+    historyRef.current.suspend = true;
+    root.innerHTML = html;
+    setTimeout(() => { historyRef.current.suspend = false; }, 0);
+  }, []);
+  const undoStructural = useCallback(() => {
+    const h = historyRef.current;
+    if (h.index <= 0) return;
+    h.index -= 1;
+    restoreSnapshot(h.stack[h.index]);
+    setHistoryTick(t => t + 1);
+  }, [restoreSnapshot]);
+  const redoStructural = useCallback(() => {
+    const h = historyRef.current;
+    if (h.index >= h.stack.length - 1) return;
+    h.index += 1;
+    restoreSnapshot(h.stack[h.index]);
+    setHistoryTick(t => t + 1);
+  }, [restoreSnapshot]);
+  const canUndo = historyRef.current.index > 0;
+  const canRedo = historyRef.current.index < historyRef.current.stack.length - 1;
+  void historyTick; // tie re-render to canUndo/canRedo
+
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
 
