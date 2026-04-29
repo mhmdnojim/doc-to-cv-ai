@@ -6,7 +6,7 @@ import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType, Undo2, Redo2 } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType, Undo2, Redo2, Lock, Unlock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -55,6 +55,7 @@ const Builder = () => {
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
+  const [lockedPages, setLockedPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
 
   // ===== Ctrl/Cmd + scroll zoom on the CV preview area =====
@@ -959,13 +960,18 @@ const Builder = () => {
                       }}
                       disabled={totalPages < 2}
                       className="p-1.5 rounded hover:bg-muted hover:text-foreground disabled:opacity-30"
-                      title="Next page"
+                      title="Move down / Next page"
                     ><ChevronDown className="w-4 h-4" /></button>
                     <button
                       onClick={() => setHiddenPages(p => ({ ...p, 0: !p[0] }))}
                       className="p-1.5 rounded hover:bg-muted hover:text-foreground"
                       title={hiddenPages[0] ? "Show page" : "Hide page"}
                     >{hiddenPages[0] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+                    <button
+                      onClick={() => setLockedPages(p => ({ ...p, 0: !p[0] }))}
+                      className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                      title={lockedPages[0] ? "Unlock page" : "Lock page"}
+                    >{lockedPages[0] ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}</button>
                     <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Duplicate (CV pages can't be duplicated)"><Copy className="w-4 h-4" /></button>
                     <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Main CV can't be deleted"><Trash2 className="w-4 h-4" /></button>
                     <button
@@ -993,7 +999,7 @@ const Builder = () => {
                   >
                     <div
                       ref={editableRef}
-                      contentEditable
+                      contentEditable={!lockedPages[0]}
                       suppressContentEditableWarning
                       spellCheck
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
@@ -1046,6 +1052,11 @@ const Builder = () => {
                           title={hiddenPages[pageIdx] ? "Show page" : "Hide page"}
                         >{hiddenPages[pageIdx] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
                         <button
+                          onClick={() => setLockedPages(p => ({ ...p, [pageIdx]: !p[pageIdx] }))}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title={lockedPages[pageIdx] ? "Unlock page" : "Lock page"}
+                        >{lockedPages[pageIdx] ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}</button>
+                        <button
                           onClick={() => {
                             const html = blankPageHtml[pageIdx] || "";
                             addBlankPage();
@@ -1086,7 +1097,7 @@ const Builder = () => {
                         style={{ width: "210mm", height: "297mm" }}
                       >
                         <div
-                          contentEditable
+                          contentEditable={!lockedPages[pageIdx]}
                           suppressContentEditableWarning
                           spellCheck
                           className="editable-cv outline-none w-full h-full p-12 text-sm text-foreground"
