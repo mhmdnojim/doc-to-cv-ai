@@ -52,7 +52,8 @@ export type TemplateId =
   | "compact" | "bold" | "photo"
   | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva"
   | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez"
-  | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan";
+  | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan"
+  | "kovacs" | "leclerc";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -94,6 +95,8 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "petrov", name: "Petrov", description: "Dark mode developer with neon cyan", accent: "from-cyan-400 to-cyan-700" },
   { id: "dubois", name: "Dubois", description: "Centered French elegance with gold rules", accent: "from-[#b8924a] to-[#7a5e2a]" },
   { id: "hassan", name: "Hassan", description: "Warm beige with arch dome header", accent: "from-[#d9c4a3] to-[#6b4f2c]" },
+  { id: "kovacs", name: "Kovács", description: "Bold editorial with yellow accent and grayscale photo", accent: "from-[#1c1c1c] to-[#ffd23f]" },
+  { id: "leclerc", name: "Leclerc", description: "French sage serif with elegant proportions", accent: "from-[#7a8c6f] to-[#4a5c3f]" },
 ];
 
 export const EMPTY_CV: CVData = {
