@@ -17,6 +17,54 @@ interface Check {
 }
 
 const STORAGE_KEY = "gh-pages-checker:repo";
+const HEALTH_MESSAGE_TYPE = "doc-to-cv-ai:github-pages-health";
+const HEALTH_QUERY_PARAM = "gh_pages_health";
+
+interface HealthPayload {
+  type: typeof HEALTH_MESSAGE_TYPE;
+  ok: boolean;
+  href: string;
+  pathname: string;
+  baseUrl: string;
+  builderRedirectUrl: string;
+  timestamp: number;
+}
+
+const normalizeUrl = (url: string) => url.replace(/\/+$/, "");
+
+const probeBuiltSite = (targetUrl: string, timeoutMs = 12000) =>
+  new Promise<HealthPayload>((resolve, reject) => {
+    const probeUrl = new URL(targetUrl);
+    probeUrl.searchParams.set(HEALTH_QUERY_PARAM, "1");
+    probeUrl.searchParams.set("t", Date.now().toString());
+
+    const iframe = document.createElement("iframe");
+    iframe.src = probeUrl.toString();
+    iframe.title = "GitHub Pages health probe";
+    iframe.className = "fixed h-px w-px opacity-0 pointer-events-none";
+
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      iframe.remove();
+      clearTimeout(timer);
+    };
+
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("The built app did not send a health response before the timeout."));
+    }, timeoutMs);
+
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== probeUrl.origin) return;
+      const data = event.data as Partial<HealthPayload>;
+      if (data?.type !== HEALTH_MESSAGE_TYPE || data.href !== probeUrl.toString()) return;
+      cleanup();
+      resolve(data as HealthPayload);
+    }
+
+    window.addEventListener("message", onMessage);
+    document.body.appendChild(iframe);
+  });
 
 export default function PagesChecker() {
   const [owner, setOwner] = useState("");
@@ -54,6 +102,8 @@ export default function PagesChecker() {
       { id: "run", title: "Latest workflow run succeeded", status: "pending" },
       { id: "pages", title: "GitHub Pages is enabled & live", status: "pending" },
       { id: "url", title: "Pages URL responds (200 OK)", status: "pending" },
+      { id: "built-site", title: "Built site loads in the browser", status: "pending" },
+      { id: "builder-redirect", title: "/builder login redirect keeps the repo path", status: "pending" },
     ];
     setChecks(initial);
 
@@ -102,19 +152,20 @@ export default function PagesChecker() {
 
     // 2. Workflow file present
     let workflowOk = false;
+    const workflowFile = ".github/workflows/deploy.yml";
     if (repoPublic) {
       try {
         const r = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/contents/.github/workflows/static.yml`
+          `https://api.github.com/repos/${owner}/${repo}/contents/${workflowFile}`
         );
         if (r.ok) {
           workflowOk = true;
-          update("workflow", { status: "ok", detail: ".github/workflows/static.yml found" });
+          update("workflow", { status: "ok", detail: `${workflowFile} found` });
         } else {
           update("workflow", {
             status: "fail",
-            detail: "Workflow file .github/workflows/static.yml is missing.",
-            fix: <>Push the static.yml workflow described in <code>DEPLOY_GITHUB_PAGES.md</code>.</>,
+            detail: `Workflow file ${workflowFile} is missing.`,
+            fix: <>Push the deploy workflow from this project, then re-run the checker.</>,
           });
         }
       } catch {
@@ -129,7 +180,7 @@ export default function PagesChecker() {
     if (workflowOk) {
       try {
         const r = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/static.yml/runs?per_page=1`
+          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs?per_page=1`
         );
         if (r.ok) {
           const data = await r.json();
@@ -235,6 +286,58 @@ export default function PagesChecker() {
       }
     } else {
       update("url", { status: "warn", detail: "Skipped — Pages not enabled." });
+    }
+
+    // 6. Built app health probe
+    let builtSiteOk = false;
+    if (pagesOk && pagesUrl) {
+      try {
+        const health = await probeBuiltSite(pagesUrl);
+        const expectedBaseUrl = normalizeUrl(pagesUrl);
+        if (!health.ok || normalizeUrl(health.baseUrl) !== expectedBaseUrl) {
+          throw new Error(`App loaded, but its base URL is ${health.baseUrl || "unknown"}.`);
+        }
+        builtSiteOk = true;
+        update("built-site", {
+          status: "ok",
+          detail: `React app loaded from ${pagesUrl}`,
+        });
+      } catch (e: any) {
+        update("built-site", {
+          status: "fail",
+          detail: e?.message ?? "The built app did not load in the browser.",
+          fix: <>Confirm the latest GitHub Actions deployment completed, then wait 1–2 minutes for Pages to update.</>,
+        });
+      }
+    } else {
+      update("built-site", { status: "warn", detail: "Skipped — Pages not enabled." });
+    }
+
+    // 7. /builder SPA fallback + post-login redirect target
+    if (builtSiteOk && pagesUrl) {
+      const builderUrl = new URL("builder", pagesUrl).toString();
+      try {
+        const health = await probeBuiltSite(builderUrl);
+        const expectedPath = new URL(builderUrl).pathname;
+        if (health.pathname !== expectedPath) {
+          throw new Error(`Expected ${expectedPath}, but the app reported ${health.pathname}.`);
+        }
+        if (normalizeUrl(health.builderRedirectUrl) !== normalizeUrl(builderUrl)) {
+          throw new Error(`Login redirect points to ${health.builderRedirectUrl} instead of ${builderUrl}.`);
+        }
+        update("builder-redirect", {
+          status: "ok",
+          detail: `Deep link loads and OAuth redirect targets ${builderUrl}`,
+        });
+      } catch (e: any) {
+        update("builder-redirect", {
+          status: "fail",
+          detail: e?.message ?? "/builder did not load correctly from GitHub Pages.",
+          fix: <>Re-run the deploy workflow so GitHub Pages receives the latest SPA fallback and base-path fixes.</>,
+        });
+      }
+    } else {
+      update("builder-redirect", { status: "warn", detail: "Skipped — built site did not pass." });
     }
 
     setRunning(false);
