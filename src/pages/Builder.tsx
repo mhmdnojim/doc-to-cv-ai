@@ -642,9 +642,6 @@ const Builder = () => {
       </nav>
 
       {(() => {
-        // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
-        const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
-        const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
             <label className="flex items-center justify-between gap-2 mb-3 px-1 py-2 rounded-md bg-muted/40 border border-border cursor-pointer">
