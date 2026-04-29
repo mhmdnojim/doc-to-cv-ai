@@ -71,6 +71,18 @@ const renderTemplate = (template: TemplateId | string, data: CVData) => {
 };
 
 export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
-  if (userTemplateHtml) return <UserTemplatePreview html={userTemplateHtml} data={data} />;
-  return <PagedFrame>{renderTemplate(template, data)}</PagedFrame>;
+  const dir = data.direction === "rtl" ? "rtl" : "ltr";
+  const lang = data.language || undefined;
+  if (userTemplateHtml) {
+    return (
+      <div dir={dir} lang={lang}>
+        <UserTemplatePreview html={userTemplateHtml} data={data} />
+      </div>
+    );
+  }
+  return (
+    <div dir={dir} lang={lang}>
+      <PagedFrame>{renderTemplate(template, data)}</PagedFrame>
+    </div>
+  );
 };
