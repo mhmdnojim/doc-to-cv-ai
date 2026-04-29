@@ -393,7 +393,22 @@ const Builder = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { setManualPages(p => p + 1); toast.success(`Page ${manualPages + 1} added`); }}
+              onClick={() => {
+                const next = manualPages + 1;
+                setManualPages(next);
+                const newIdx = Math.max(measuredPages, next) - 1;
+                toast.success(`Page ${next} added`);
+                // Scroll to & focus the new page after render
+                setTimeout(() => {
+                  const el = pageRefs.current[newIdx];
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    setFocusedPage(newIdx);
+                    const editable = el.querySelector<HTMLElement>("[contenteditable='true']");
+                    editable?.focus();
+                  }
+                }, 120);
+              }}
               title="Add a blank page"
             >
               <FilePlus className="w-4 h-4 mr-2" /> Add page
