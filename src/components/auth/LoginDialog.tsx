@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { getAppRedirectUrl } from "@/lib/app-url";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
 
@@ -29,7 +30,7 @@ export const LoginDialog = ({ open, onOpenChange }: Props) => {
   const handleOAuth = async (provider: "google" | "apple") => {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: getAppRedirectUrl() });
       if (result.error) throw result.error;
       if (!result.redirected) {
         toast.success("Signed in!");
@@ -55,7 +56,7 @@ export const LoginDialog = ({ open, onOpenChange }: Props) => {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: getAppRedirectUrl() },
         });
         if (error) throw error;
         toast.success("Account created — you're signed in!");
