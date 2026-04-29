@@ -501,12 +501,7 @@ const Builder = () => {
 
   const buildExportHtml = (): string => {
     if (!editableRef.current) return "";
-    const clone = editableRef.current.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
-    const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
-      .map(n => n.outerHTML).join("\n");
-    const fontFamily = editableRef.current.style.fontFamily || "";
-    return `<!doctype html><html><head><meta charset="utf-8"><title>${data.fullName || "CV"}</title>${styles}<style>body{margin:0;padding:24px;background:#fff;font-family:${fontFamily || "Inter, system-ui, sans-serif"};}</style></head><body>${clone.innerHTML}</body></html>`;
+    return buildStandaloneHtml(editableRef.current, data.fullName || "CV");
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
