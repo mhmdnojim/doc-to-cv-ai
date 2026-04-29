@@ -373,6 +373,18 @@ const Builder = () => {
                 <LogOut className="w-4 h-4" />
               </Button>
             )}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted/60 rounded-md px-2 py-1.5 border border-border">
+              <FileText className="w-3.5 h-3.5" />
+              <span>Page {totalPages === 1 ? "1" : `1 / ${totalPages}`}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setManualPages(p => p + 1); toast.success(`Page ${manualPages + 1} added`); }}
+              title="Add a blank page"
+            >
+              <FilePlus className="w-4 h-4 mr-2" /> Add page
+            </Button>
             <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
               <LayoutTemplate className="w-4 h-4 mr-2" />Templates
             </Button>
