@@ -1637,3 +1637,147 @@ export const HassanTemplate = ({ data }: Props) => (
     </div>
   </div>
 );
+
+/* ============================ BATCH 4 ============================ */
+
+export const KovacsTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
+    <div className="grid grid-cols-12">
+      <aside className="col-span-5 bg-[#1c1c1c] text-white p-8 min-h-[297mm]">
+        <Avatar src={data.photo} className="w-36 h-36 rounded-none object-cover mb-6 grayscale" />
+        <h1 className="text-3xl font-black uppercase leading-none">{data.fullName || "Your Name"}</h1>
+        <div className="w-12 h-1 bg-[#ffd23f] my-3" />
+        <p className="text-[#ffd23f] uppercase tracking-[0.25em] text-xs">{data.jobTitle}</p>
+
+        <div className="mt-8 space-y-5 text-sm">
+          <div>
+            <h3 className="text-[#ffd23f] uppercase text-xs tracking-widest font-bold mb-2">Contact</h3>
+            <div className="space-y-1 text-white/80">
+              {data.email && <p className="break-all">{data.email}</p>}
+              {data.phone && <p>{data.phone}</p>}
+              {data.location && <p>{data.location}</p>}
+              {data.website && <p className="break-all">{data.website}</p>}
+            </div>
+          </div>
+          {data.skills.length > 0 && (
+            <div>
+              <h3 className="text-[#ffd23f] uppercase text-xs tracking-widest font-bold mb-2">Skills</h3>
+              <ul className="space-y-1 text-white/80">{data.skills.map((s, i) => <li key={i}>— {s}</li>)}</ul>
+            </div>
+          )}
+          {data.languages.length > 0 && (
+            <div>
+              <h3 className="text-[#ffd23f] uppercase text-xs tracking-widest font-bold mb-2">Languages</h3>
+              {data.languages.map(l => <p key={l.id} className="text-white/80"><b className="text-white">{l.name}</b> · {l.level}</p>)}
+            </div>
+          )}
+        </div>
+      </aside>
+      <main className="col-span-7 p-9 text-sm">
+        {data.summary && (
+          <section className="mb-6">
+            <h2 className="text-2xl font-black uppercase">About</h2>
+            <div className="w-12 h-1 bg-[#1c1c1c] my-2" />
+            <p className="text-slate-700 leading-relaxed">{data.summary}</p>
+          </section>
+        )}
+        {data.experience.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-2xl font-black uppercase">Experience</h2>
+            <div className="w-12 h-1 bg-[#1c1c1c] my-2" />
+            {data.experience.map(e => (
+              <div key={e.id} className="mb-4">
+                <div className="flex justify-between items-baseline">
+                  <b className="uppercase">{e.position}</b>
+                  <span className="text-xs text-slate-500">{e.startDate} – {e.endDate}</span>
+                </div>
+                <p className="text-[#c19400] text-xs font-bold uppercase tracking-wider">{e.company}{e.location && ` · ${e.location}`}</p>
+                <p className="text-slate-700 mt-1.5 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-black uppercase">Education</h2>
+            <div className="w-12 h-1 bg-[#1c1c1c] my-2" />
+            {data.education.map(e => (
+              <div key={e.id} className="mb-2">
+                <b className="uppercase">{e.degree} {e.field}</b>
+                <p className="text-xs text-slate-600">{e.school} · {e.startDate} – {e.endDate}</p>
+              </div>
+            ))}
+          </section>
+        )}
+      </main>
+    </div>
+  </div>
+);
+
+export const LeclercTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-[#fafaf7] text-slate-900 font-serif p-12">
+    <header className="flex items-center gap-8 pb-6 border-b border-[#7a8c6f]/40">
+      <Avatar src={data.photo} className="w-28 h-28 rounded-full object-cover ring-4 ring-[#7a8c6f]/30" />
+      <div className="flex-1">
+        <h1 className="text-4xl font-light tracking-wide">{data.fullName || "Your Name"}</h1>
+        <p className="text-[#7a8c6f] italic mt-1">{data.jobTitle}</p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-600 font-sans">
+          {data.email && <span>{data.email}</span>}
+          {data.phone && <span>· {data.phone}</span>}
+          {data.location && <span>· {data.location}</span>}
+          {data.website && <span>· {data.website}</span>}
+        </div>
+      </div>
+    </header>
+    <div className="grid grid-cols-3 gap-10 mt-8 text-sm font-sans">
+      <main className="col-span-2 space-y-6">
+        {data.summary && (
+          <section>
+            <h2 className="font-serif text-xl text-[#7a8c6f] mb-1.5 italic">Profile</h2>
+            <p className="text-slate-700 leading-relaxed">{data.summary}</p>
+          </section>
+        )}
+        {data.experience.length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl text-[#7a8c6f] mb-2 italic">Experience</h2>
+            {data.experience.map(e => (
+              <div key={e.id} className="mb-4">
+                <div className="flex justify-between items-baseline">
+                  <b className="font-serif text-base">{e.position}</b>
+                  <span className="text-xs text-slate-500">{e.startDate} – {e.endDate}</span>
+                </div>
+                <p className="text-[#7a8c6f] italic text-xs">{e.company}{e.location && ` · ${e.location}`}</p>
+                <p className="text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section>
+            <h2 className="font-serif text-xl text-[#7a8c6f] mb-2 italic">Education</h2>
+            {data.education.map(e => (
+              <div key={e.id} className="mb-2">
+                <b className="font-serif">{e.degree} {e.field}</b>
+                <p className="text-xs text-slate-600 italic">{e.school} · {e.startDate} – {e.endDate}</p>
+              </div>
+            ))}
+          </section>
+        )}
+      </main>
+      <aside className="col-span-1 space-y-5">
+        {data.skills.length > 0 && (
+          <div>
+            <h3 className="font-serif text-lg text-[#7a8c6f] mb-2 italic">Skills</h3>
+            <ul className="space-y-1 text-slate-700">{data.skills.map((s, i) => <li key={i}>— {s}</li>)}</ul>
+          </div>
+        )}
+        {data.languages.length > 0 && (
+          <div>
+            <h3 className="font-serif text-lg text-[#7a8c6f] mb-2 italic">Languages</h3>
+            {data.languages.map(l => <p key={l.id} className="text-slate-700"><b>{l.name}</b> · <span className="italic">{l.level}</span></p>)}
+          </div>
+        )}
+      </aside>
+    </div>
+  </div>
+);
