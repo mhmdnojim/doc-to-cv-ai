@@ -5,6 +5,7 @@ import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 import { useAuth } from "@/hooks/useAuth";
 import loginCube from "@/assets/login-cube.png";
 
@@ -22,6 +23,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const [query, setQuery] = useState("");
   const [showUpload, setShowUpload] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
 
   const filtered = useMemo(() => {
@@ -45,7 +47,7 @@ const Index = () => {
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => (user ? signOut() : navigate("/auth"))}
+              onClick={() => (user ? signOut() : setShowLogin(true))}
               title={user ? "Sign out" : "Sign in"}
               aria-label={user ? "Sign out" : "Sign in"}
               className="w-10 h-10 rounded-xl overflow-hidden border border-border hover:shadow-glow transition-base bg-white"
@@ -185,6 +187,7 @@ const Index = () => {
       </footer>
 
       <TemplateUploadDialog open={showUpload} onOpenChange={setShowUpload} onCreated={() => { /* template saved */ }} />
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
     </div>
   );
 };
