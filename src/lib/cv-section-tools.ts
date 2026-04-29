@@ -144,14 +144,17 @@ export function listSections(root: HTMLElement): SectionInfo[] {
     // Avoid nesting: if a candidate is inside another candidate, drop the inner one
     // (except for personal-info which should win over its wrapping section).
     const list = Array.from(candidates);
-    // Drop a candidate if another candidate contains it — UNLESS the inner one is
-    // the personal-info block (which should win over its wrapping container).
+    // Drop a candidate if another candidate contains it — but the personal-info
+    // block always survives (it should win over its wrapping container).
     const filtered = list.filter(el => {
-      const isPI = el.hasAttribute(PERSONAL_INFO_ATTR);
-      return !list.some(other => other !== el && other.contains(el) && !(isPI && !other.hasAttribute(PERSONAL_INFO_ATTR) ? false : false)
-        ? other !== el && other.contains(el) && !isPI
-        : false);
+      if (el.hasAttribute(PERSONAL_INFO_ATTR)) return true;
+      return !list.some(other => other !== el && other.contains(el));
     });
+    // Also: if personal-info exists, remove any candidate that's an ancestor of it.
+    const piEl = filtered.find(e => e.hasAttribute(PERSONAL_INFO_ATTR));
+    const finalList = piEl
+      ? filtered.filter(e => e === piEl || !e.contains(piEl))
+      : filtered;
 
     // Document order
     filtered.sort((a, b) => {
