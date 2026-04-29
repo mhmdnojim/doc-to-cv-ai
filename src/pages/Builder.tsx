@@ -636,6 +636,10 @@ const Builder = () => {
       </nav>
 
       {(() => {
+        // Use sample data for thumbnails when current CV is essentially empty,
+        // so previews always show meaningful content.
+        const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
+        const previewData = isEmptyCv ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
             <div className="grid grid-cols-2 gap-3">
@@ -651,7 +655,7 @@ const Builder = () => {
                   >
                     <div className="aspect-[210/297] bg-white relative overflow-hidden">
                       <div className="absolute inset-0 origin-top-left scale-[0.13]">
-                        <CVPreview data={data} template={t.id} />
+                        <CVPreview data={previewData} template={t.id} />
                       </div>
                     </div>
                     <div className="px-2 py-1.5 text-[11px] font-medium text-left bg-card flex items-center justify-between">
@@ -695,7 +699,7 @@ const Builder = () => {
                         >
                           <div className="aspect-[210/297] bg-white relative overflow-hidden">
                             <div className="absolute inset-0 origin-top-left scale-[0.13]">
-                              <CVPreview data={data} template={t.id} userTemplateHtml={t.html} />
+                              <CVPreview data={previewData} template={t.id} userTemplateHtml={t.html} />
                             </div>
                             {t.is_disabled && (
                               <div className="absolute inset-0 flex items-center justify-center bg-background/60">
