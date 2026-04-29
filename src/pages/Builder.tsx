@@ -400,16 +400,19 @@ const Builder = () => {
     const headingText = sec.querySelector("h2")?.textContent || "";
     if (headingText) setPendingFocusText(headingText);
     toast.success("Section added");
+    snapshotHistory();
     // Re-inject tools so the new section gets handles
     setTimeout(() => {
-      injectSectionTools(root, { onInsert: (w) => {
-        setPickerSpec({ type: "custom" });
-        setPickerSections(listSections(root));
-        // For inline gap clicks, insert a custom section directly without dialog
-        performInsert(w, { type: "custom" });
-      }});
+      injectSectionTools(root, {
+        onInsert: (w) => {
+          setPickerSpec({ type: "custom" });
+          setPickerSections(listSections(root));
+          performInsert(w, { type: "custom" });
+        },
+        onMutate: snapshotHistory,
+      });
     }, 80);
-  }, []);
+  }, [snapshotHistory]);
 
   // Backwards-compat: addCustomSection still exists for the legacy left/right buttons
   const addCustomSection = (side: "left" | "right") => {
@@ -426,10 +429,44 @@ const Builder = () => {
           // Inline "+ here" → insert a custom section at that exact spot
           performInsert(where, { type: "custom" });
         },
+        onMutate: snapshotHistory,
       });
     }, 120);
     return () => clearTimeout(t);
-  }, [data, template, performInsert]);
+  }, [data, template, performInsert, snapshotHistory]);
+
+  // Capture an initial history snapshot once the editable mounts / template changes,
+  // and listen for Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z or Ctrl+Y (redo) when
+  // focus is inside the editable CV. Pure text edits still go through the
+  // browser's native undo; structural changes use our snapshot stack.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const root = editableRef.current;
+      if (!root) return;
+      historyRef.current = { stack: [root.innerHTML], index: 0, suspend: false };
+      setHistoryTick(v => v + 1);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [template, userTemplateHtml]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const root = editableRef.current;
+      if (!root) return;
+      const target = e.target as Node | null;
+      if (!target || !root.contains(target)) return;
+      const meta = e.ctrlKey || e.metaKey;
+      if (!meta) return;
+      const key = e.key.toLowerCase();
+      if (key === "z" && !e.shiftKey) {
+        if (canUndo) { e.preventDefault(); undoStructural(); }
+      } else if ((key === "z" && e.shiftKey) || key === "y") {
+        if (canRedo) { e.preventDefault(); redoStructural(); }
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [canUndo, canRedo, undoStructural, redoStructural]);
 
 
 
