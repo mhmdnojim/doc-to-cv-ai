@@ -61,6 +61,12 @@ const Builder = () => {
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [lockedPages, setLockedPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
+  // Bumped whenever we replace `data` wholesale (import/load/sample toggle) so
+  // the contentEditable preview is force-remounted with the fresh content.
+  // Without this, the browser-managed contentEditable DOM keeps the stale tree
+  // and React's prop diff doesn't visibly update.
+  const [dataVersion, setDataVersion] = useState(0);
+  const bumpData = useCallback(() => setDataVersion(v => v + 1), []);
 
   // ===== Ctrl/Cmd + scroll zoom on the CV preview area =====
   // Holding Ctrl (or Cmd on macOS) and scrolling inside the CV area zooms
@@ -244,6 +250,7 @@ const Builder = () => {
           setTemplate(row.template);
           setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
           setManualPages(row.manual_pages || 1);
+          bumpData();
           return;
         }
       }
@@ -261,6 +268,7 @@ const Builder = () => {
         setTemplate(row.template);
         setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
         setManualPages(row.manual_pages || 1);
+        bumpData();
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -891,6 +899,8 @@ const Builder = () => {
                   // in the previews — the user wants to see THEIR data now.
                   setUseSampleData(false);
                   setShowUpload(false);
+                  // Force the contentEditable preview to remount with the new data.
+                  bumpData();
                 }} />
               </div>
             )}
@@ -994,7 +1004,7 @@ const Builder = () => {
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
                       onFocus={() => setFocusedPage(0)}
                     >
-                      <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
+                      <CVPreview key={`${template}-${useSampleData ? "sample" : "data"}-${dataVersion}`} data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
                     </div>
                   </div>
                 </div>
