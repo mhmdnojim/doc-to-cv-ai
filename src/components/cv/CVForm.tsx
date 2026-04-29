@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { PhotoUploader } from "./PhotoUploader";
 
 interface Props {
   data: CVData;
