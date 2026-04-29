@@ -55,6 +55,7 @@ const Builder = () => {
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
+  const [lockedPages, setLockedPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
 
   // ===== Ctrl/Cmd + scroll zoom on the CV preview area =====
