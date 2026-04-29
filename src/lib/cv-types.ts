@@ -12,6 +12,10 @@ export interface CVData {
   skills: string[];
   languages: Language[];
   projects: Project[];
+  /** ISO 639-1 code of the document's primary language (e.g. "en", "ar", "zh", "kk", "bg", "tk", "id"). */
+  language?: string;
+  /** Text direction inferred from language: "ltr" or "rtl". */
+  direction?: "ltr" | "rtl";
 }
 
 export interface Experience {
@@ -126,6 +130,8 @@ export const EMPTY_CV: CVData = {
   skills: [],
   languages: [],
   projects: [],
+  language: "en",
+  direction: "ltr",
 };
 
 export const SAMPLE_CV: CVData = {
