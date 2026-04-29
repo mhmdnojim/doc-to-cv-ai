@@ -43,6 +43,7 @@ const Builder = () => {
         skills: addSkill, "core competencies": addSkill, stack: addSkill,
         languages: addLanguage,
         projects: addProject,
+        contact: addContact, "contact info": addContact, "get in touch": addContact,
       };
       headings.forEach(h => {
         if (h.querySelector("[data-add-btn]")) return;
@@ -117,6 +118,22 @@ const Builder = () => {
     }]};
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(next);
+  };
+  const addContact = () => {
+    const placeholders: Record<"email" | "phone" | "location" | "website", string> = {
+      email: "your.email@example.com",
+      phone: "+1 (555) 000-0000",
+      location: "City, Country",
+      website: "yourwebsite.com",
+    };
+    const order: Array<"email" | "phone" | "location" | "website"> = ["email", "phone", "location", "website"];
+    const next = order.find(f => !data[f]);
+    if (!next) {
+      toast.info("All contact fields are filled — click any one to edit it.");
+      return;
+    }
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData({ ...data, [next]: placeholders[next] });
   };
 
   // Delete helpers
