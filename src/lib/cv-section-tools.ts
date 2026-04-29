@@ -191,7 +191,20 @@ export function cleanupTools(root: HTMLElement) {
     el.style.outline = "";
     el.style.outlineColor = "";
     el.style.outlineOffset = "";
+    // Restore the original background that hover may have replaced
+    const orig = el.getAttribute("data-cv-orig-bg");
+    if (orig !== null) {
+      el.style.backgroundColor = orig;
+      el.removeAttribute("data-cv-orig-bg");
+    }
     el.removeAttribute("draggable");
+  });
+  // Restore original padding on indented subsection containers
+  root.querySelectorAll<HTMLElement>("[data-cv-indented]").forEach(el => {
+    const orig = el.getAttribute("data-cv-orig-padding-left") || "";
+    el.style.paddingLeft = orig;
+    el.removeAttribute("data-cv-indented");
+    el.removeAttribute("data-cv-orig-padding-left");
   });
 }
 
