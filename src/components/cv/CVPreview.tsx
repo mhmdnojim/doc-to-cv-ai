@@ -4,6 +4,7 @@ import {
   ElegantTemplate, ProfessionalTemplate, CorporateTemplate, DesignerTemplate, AcademicTemplate,
   CompactTemplate, BoldTemplate, PhotoTemplate,
   NavarroTemplate, MitchellTemplate, FloresTemplate, CortesTemplate, AlvarezTemplate, SilvaTemplate,
+  WilsonTemplate, GallegoTemplate, ZaliyantiTemplate, ChocontaTemplate, NasserTemplate, PerezTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
 
