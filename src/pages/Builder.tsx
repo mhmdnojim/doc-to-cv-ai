@@ -25,6 +25,7 @@ const Builder = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [showTplDialog, setShowTplDialog] = useState(false);
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
