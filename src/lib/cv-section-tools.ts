@@ -446,9 +446,21 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     }, 30);
   };
 
+  // Indent the subsection container so children are visually nested under
+  // the parent section heading. Mark it so cleanup can revert.
+  if (!container.hasAttribute("data-cv-indented")) {
+    container.setAttribute("data-cv-indented", "1");
+    container.setAttribute("data-cv-orig-padding-left", container.style.paddingLeft || "");
+    const cur = parseFloat(window.getComputedStyle(container).paddingLeft || "0") || 0;
+    container.style.paddingLeft = `${cur + 16}px`;
+  }
+
   items.forEach((item) => {
     attachHoverFrame(item, {
       label: "subsection",
+      // Use a warmer accent + tint so subsections read as nested, not duplicated.
+      accent: "hsl(var(--accent-foreground, var(--primary)))",
+      bgTint: "hsl(var(--muted) / 0.5)",
       onInsertAbove: () => insertSubAt(item, "before"),
       onInsertBelow: () => insertSubAt(item, "after"),
     });
