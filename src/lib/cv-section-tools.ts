@@ -311,10 +311,6 @@ function attachHoverFrame(
   el.setAttribute("data-cv-orig-bg", originalBg);
 
   const size = compact ? 18 : 22;
-  // Section buttons sit OUTSIDE the box (-10px); subsection buttons sit INSIDE
-  // the box (+4px) so they never collide with the section-level buttons of
-  // the parent or of an adjacent subsection.
-  const offset = compact ? "4px" : "-10px";
 
   const makePlus = (position: "top" | "bottom", onClick: () => void) => {
     const b = document.createElement("button");
@@ -322,9 +318,23 @@ function attachHoverFrame(
     b.setAttribute("contenteditable", "false");
     b.title = position === "top" ? `Add ${opts.label} above` : `Add ${opts.label} below`;
     b.innerHTML = PLUS_ICON;
-    const corner = position === "top"
-      ? `top: ${offset}; right: ${offset};`
-      : `bottom: ${offset}; left: ${offset};`;
+
+    // Subsections (compact) → corners, INSIDE the box so they don't collide
+    // with the section-level buttons at the same edges.
+    // Sections (default) → top-center / bottom-center, OUTSIDE the box.
+    let corner: string;
+    let baseTransform = "";
+    if (compact) {
+      corner = position === "top"
+        ? "top: 4px; right: 4px;"
+        : "bottom: 4px; left: 4px;";
+    } else {
+      corner = position === "top"
+        ? "top: -11px; left: 50%;"
+        : "bottom: -11px; left: 50%;";
+      baseTransform = "translateX(-50%)";
+    }
+
     b.style.cssText = [
       "position: absolute",
       corner,
@@ -340,12 +350,17 @@ function attachHoverFrame(
       "box-shadow: 0 1px 4px rgba(0,0,0,0.2)",
       "cursor: pointer",
       "opacity: 0",
+      `transform: ${baseTransform || "none"}`,
       "transition: opacity .15s, transform .15s",
       "z-index: 6",
       "padding: 0",
     ].join(";");
-    b.onmouseenter = () => { b.style.transform = "scale(1.15)"; };
-    b.onmouseleave = () => { b.style.transform = "scale(1)"; };
+    b.onmouseenter = () => {
+      b.style.transform = baseTransform ? `${baseTransform} scale(1.15)` : "scale(1.15)";
+    };
+    b.onmouseleave = () => {
+      b.style.transform = baseTransform || "scale(1)";
+    };
     b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); onClick(); };
     return b;
   };
