@@ -144,9 +144,13 @@ export function listSections(root: HTMLElement): SectionInfo[] {
     // Avoid nesting: if a candidate is inside another candidate, drop the inner one
     // (except for personal-info which should win over its wrapping section).
     const list = Array.from(candidates);
+    // Drop a candidate if another candidate contains it — UNLESS the inner one is
+    // the personal-info block (which should win over its wrapping container).
     const filtered = list.filter(el => {
-      if (el.hasAttribute(PERSONAL_INFO_ATTR)) return true;
-      return !list.some(other => other !== el && other !== el && other.contains(el) && !other.hasAttribute(PERSONAL_INFO_ATTR) === false ? false : (other !== el && other.contains(el) && !el.hasAttribute(PERSONAL_INFO_ATTR)));
+      const isPI = el.hasAttribute(PERSONAL_INFO_ATTR);
+      return !list.some(other => other !== el && other.contains(el) && !(isPI && !other.hasAttribute(PERSONAL_INFO_ATTR) ? false : false)
+        ? other !== el && other.contains(el) && !isPI
+        : false);
     });
 
     // Document order
