@@ -721,7 +721,7 @@ const Builder = () => {
             <EditorRail
               templatesPanel={templatesPanel}
               editorRef={editableRef}
-              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, loadSample, clearAll }}
+              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, addSectionAt, loadSample, clearAll }}
             />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden lg:overflow-y-auto lg:h-full">
