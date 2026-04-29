@@ -699,7 +699,7 @@ const Builder = () => {
                         >
                           <div className="aspect-[210/297] bg-white relative overflow-hidden">
                             <div className="absolute inset-0 origin-top-left scale-[0.13]">
-                              <CVPreview data={data} template={t.id} userTemplateHtml={t.html} />
+                              <CVPreview data={previewData} template={t.id} userTemplateHtml={t.html} />
                             </div>
                             {t.is_disabled && (
                               <div className="absolute inset-0 flex items-center justify-center bg-background/60">
