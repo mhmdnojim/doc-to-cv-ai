@@ -15,13 +15,13 @@ export const AIUploader = ({ onExtracted }: Props) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     if (!file) return;
     if (!user) {
-      toast.info("Please sign in to use AI import");
-      window.location.assign("/auth");
+      setShowLogin(true);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
