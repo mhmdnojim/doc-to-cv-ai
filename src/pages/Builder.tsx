@@ -637,12 +637,15 @@ const Builder = () => {
       </nav>
 
       {(() => {
-        // Use sample data for thumbnails when current CV is essentially empty,
-        // so previews always show meaningful content.
+        // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
         const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
-        const previewData = isEmptyCv ? SAMPLE_CV : data;
+        const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
+            <label className="flex items-center justify-between gap-2 mb-3 px-1 py-2 rounded-md bg-muted/40 border border-border cursor-pointer">
+              <span className="text-xs font-medium">Use sample data in previews</span>
+              <Switch checked={useSampleData} onCheckedChange={setUseSampleData} />
+            </label>
             <div className="grid grid-cols-2 gap-3">
               {TEMPLATES.map(t => {
                 const active = t.id === template;
