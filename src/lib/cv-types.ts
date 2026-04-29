@@ -46,7 +46,10 @@ export interface Project {
   link: string;
 }
 
-export type TemplateId = "modern" | "classic" | "minimal" | "creative" | "executive" | "tech";
+export type TemplateId =
+  | "modern" | "classic" | "minimal" | "creative" | "executive" | "tech"
+  | "elegant" | "professional" | "corporate" | "designer" | "academic"
+  | "compact" | "bold" | "photo";
 
 export interface TemplateMeta {
   id: TemplateId;
