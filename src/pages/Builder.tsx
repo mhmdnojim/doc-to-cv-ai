@@ -135,6 +135,91 @@ const Builder = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
+  // ===== Cloud-saved CV =====
+  const [savedCvId, setSavedCvId] = useState<string | null>(() => localStorage.getItem("cv-builder-saved-id"));
+  const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  // Load existing CV from account on first sign-in
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      let id = savedCvId;
+      if (id) {
+        const { data: row } = await supabase.from("saved_cvs").select("*").eq("id", id).maybeSingle();
+        if (row) {
+          setData(row.data as CVData);
+          setTemplate(row.template);
+          setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
+          setManualPages(row.manual_pages || 1);
+          return;
+        }
+      }
+      // Else load most recent CV
+      const { data: rows } = await supabase
+        .from("saved_cvs")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        setSavedCvId(row.id);
+        localStorage.setItem("cv-builder-saved-id", row.id);
+        setData(row.data as CVData);
+        setTemplate(row.template);
+        setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
+        setManualPages(row.manual_pages || 1);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const saveCv = useCallback(async (silent = false): Promise<string | null> => {
+    if (!user) {
+      if (!silent) toast.error("Sign in to save your CV to your account");
+      return null;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        user_id: user.id,
+        name: data.fullName || "My CV",
+        template,
+        data: data as any,
+        blank_pages: blankPageHtml as any,
+        manual_pages: manualPages,
+      };
+      if (savedCvId) {
+        const { error } = await supabase.from("saved_cvs").update(payload).eq("id", savedCvId);
+        if (error) throw error;
+      } else {
+        const { data: inserted, error } = await supabase
+          .from("saved_cvs")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        setSavedCvId(inserted.id);
+        localStorage.setItem("cv-builder-saved-id", inserted.id);
+      }
+      setLastSavedAt(new Date());
+      if (!silent) toast.success("CV saved to your account");
+      return savedCvId;
+    } catch (e: any) {
+      if (!silent) toast.error(e.message || "Couldn't save CV");
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }, [user, data, template, blankPageHtml, manualPages, savedCvId]);
+
+  // Auto-save with debounce when signed in
+  useEffect(() => {
+    if (!user) return;
+    const t = setTimeout(() => { saveCv(true); }, 1500);
+    return () => clearTimeout(t);
+  }, [user, data, template, blankPageHtml, manualPages, saveCv]);
+
   // After data changes, focus & select the freshly added placeholder text
   useEffect(() => {
     if (!pendingFocusText || !editableRef.current) return;
