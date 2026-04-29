@@ -8,15 +8,24 @@ import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-typ
 import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
 
-interface UserTemplate { id: string; name: string; html: string; }
+interface UserTemplate {
+  id: string;
+  name: string;
+  html: string;
+  user_id: string;
+  is_disabled: boolean;
+  is_public: boolean;
+}
 
 const Builder = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTemplate = searchParams.get("template") || "modern";
   // template can be a built-in TemplateId OR a user template id (uuid). We treat it as string.
