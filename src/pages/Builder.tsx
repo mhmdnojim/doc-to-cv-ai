@@ -251,6 +251,10 @@ const Builder = () => {
           setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
           setManualPages(row.manual_pages || 1);
           bumpData();
+          return;
+        }
+      }
+      // Else load most recent CV
       const { data: rows } = await supabase
         .from("saved_cvs")
         .select("*")
@@ -264,6 +268,7 @@ const Builder = () => {
         setTemplate(row.template);
         setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
         setManualPages(row.manual_pages || 1);
+        bumpData();
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
