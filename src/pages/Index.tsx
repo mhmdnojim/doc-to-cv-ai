@@ -43,13 +43,26 @@ const Index = () => {
       {/* Nav */}
       <nav className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
         <div className="container flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <FileText className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold tracking-tight">Resumé</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => (user ? signOut() : navigate("/auth"))}
+              title={user ? "Sign out" : "Sign in"}
+              aria-label={user ? "Sign out" : "Sign in"}
+              className="w-10 h-10 rounded-xl overflow-hidden border border-border hover:shadow-glow transition-base bg-white"
+            >
+              <img src={loginCube} alt="Login" width={40} height={40} className="w-full h-full object-cover" />
+            </button>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+                <FileText className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="font-semibold tracking-tight">Resumé</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowUpload(true)} className="gap-1.5">
+              <ImagePlus className="w-4 h-4" /> Create new template
+            </Button>
             <Link to="/templates"><Button variant="ghost" size="sm">Templates</Button></Link>
             <Link to="/builder"><Button size="sm" className="bg-gradient-primary shadow-glow">Build my CV</Button></Link>
           </div>
