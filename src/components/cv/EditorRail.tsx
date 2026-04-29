@@ -6,17 +6,31 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type RailKey = "templates" | "text" | "magic";
+type RailKey = "templates" | "add" | "text" | "magic";
+
+interface AddActions {
+  addExperience: () => void;
+  addEducation: () => void;
+  addSkill: () => void;
+  addLanguage: () => void;
+  addProject: () => void;
+  addCustomSection: (side: "left" | "right") => void;
+  loadSample: () => void;
+  clearAll: () => void;
+}
 
 interface Props {
   /** Provided panel content for templates (existing UI) */
   templatesPanel: React.ReactNode;
   /** Reference to the contenteditable element so we can apply formatting / selection edits */
   editorRef: React.RefObject<HTMLDivElement>;
+  /** Section / sample actions, surfaced from Builder */
+  addActions: AddActions;
 }
 
 const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
   { key: "templates", label: "Templates", icon: LayoutTemplate },
+  { key: "add",       label: "Add",       icon: PlusSquare },
   { key: "text",      label: "Text",      icon: Type },
   { key: "magic",     label: "Magic Write", icon: Sparkles },
 ];
