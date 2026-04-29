@@ -17,6 +17,20 @@ interface Check {
 }
 
 const STORAGE_KEY = "gh-pages-checker:repo";
+const HEALTH_MESSAGE_TYPE = "doc-to-cv-ai:github-pages-health";
+const HEALTH_QUERY_PARAM = "gh_pages_health";
+
+interface HealthPayload {
+  type: typeof HEALTH_MESSAGE_TYPE;
+  ok: boolean;
+  href: string;
+  pathname: string;
+  baseUrl: string;
+  builderRedirectUrl: string;
+  timestamp: number;
+}
+
+const normalizeUrl = (url: string) => url.replace(/\/+$/, "");
 
 export default function PagesChecker() {
   const [owner, setOwner] = useState("");
