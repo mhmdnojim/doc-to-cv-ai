@@ -49,7 +49,8 @@ export interface Project {
 export type TemplateId =
   | "modern" | "classic" | "minimal" | "creative" | "executive" | "tech"
   | "elegant" | "professional" | "corporate" | "designer" | "academic"
-  | "compact" | "bold" | "photo";
+  | "compact" | "bold" | "photo"
+  | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -73,6 +74,12 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "bold", name: "Bold", description: "Large typography, statement header", accent: "from-red-500 to-rose-700" },
   { id: "photo", name: "Photo Pro", description: "Large photo banner with dark overlay", accent: "from-teal-600 to-emerald-700" },
   { id: "tech", name: "Tech", description: "Monospace accents, developer focus", accent: "from-cyan-500 to-blue-600" },
+  { id: "navarro", name: "Navarro", description: "Navy sidebar with circular photo and wave divider", accent: "from-[#2c4a6b] to-[#1d3550]" },
+  { id: "mitchell", name: "Mitchell", description: "Navy header band with skill bars", accent: "from-[#2d4a6b] to-[#1d3550]" },
+  { id: "flores", name: "Flores", description: "Peach sidebar with elegant script name", accent: "from-[#f4d4c4] to-[#f4a48a]" },
+  { id: "cortes", name: "Cortés", description: "Script header with peach right sidebar", accent: "from-[#f4d4c4] to-[#e8b4a0]" },
+  { id: "alvarez", name: "Álvarez", description: "Pink curved shapes, modern feminine", accent: "from-[#fde0e8] to-[#f8b4c4]" },
+  { id: "silva", name: "Silva", description: "Sage green sidebar, wellness vibe", accent: "from-[#5a6e5a] to-[#3a4e3a]" },
 ];
 
 export const EMPTY_CV: CVData = {

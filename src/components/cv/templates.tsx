@@ -629,3 +629,404 @@ export const PhotoTemplate = ({ data }: Props) => (
     </div>
   </div>
 );
+
+/* ============================================================
+ * Batch 1 of community-inspired templates
+ * Each one is hand-coded, photo-aware (uses person silhouette
+ * placeholder when no photo is provided) and uses the same
+ * CVData shape as the other 14 built-in templates.
+ * ========================================================== */
+
+const PhotoSilhouette = ({ className = "" }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="100" height="100" fill="#e5e7eb" />
+    <circle cx="50" cy="38" r="16" fill="#9ca3af" />
+    <path d="M20 88c0-17 13-28 30-28s30 11 30 28z" fill="#9ca3af" />
+  </svg>
+);
+
+const Avatar = ({ src, className }: { src?: string; className: string }) =>
+  src ? <img src={src} alt="" className={`${className} object-cover`} /> : <PhotoSilhouette className={className} />;
+
+/* 1. Navarro — Navy sidebar, circular photo, wave divider */
+export const NavarroTemplate = ({ data }: Props) => (
+  <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px]">
+    <aside className="w-[235px] bg-[#2c4a6b] text-white relative">
+      <div className="px-6 pt-8 pb-12 text-center relative">
+        <Avatar src={data.photo} className="w-28 h-28 rounded-full mx-auto border-4 border-white shadow-md" />
+      </div>
+      <svg viewBox="0 0 235 40" className="block w-full -mt-1" preserveAspectRatio="none">
+        <path d="M0,40 Q60,0 117,20 T235,15 L235,40 Z" fill="#ffffff" />
+      </svg>
+      <div className="px-6 pb-8 -mt-2 space-y-6">
+        <section>
+          <h3 className="font-bold tracking-widest text-xs mb-2 text-white/90">CONTACTO</h3>
+          <div className="space-y-1.5 text-[11px] text-white/85 leading-snug">
+            {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0" />{data.phone}</div>}
+            {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0" />{data.email}</div>}
+            {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0" />{data.location}</div>}
+            {data.website && <div className="flex gap-2 break-all"><Globe className="w-3 h-3 mt-0.5 shrink-0" />{data.website}</div>}
+          </div>
+        </section>
+        {data.summary && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs mb-2 text-white/90">INFORMACIÓN</h3>
+            <p className="text-[11px] text-white/85 leading-relaxed">{data.summary}</p>
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs mb-2 text-white/90">FORMACIÓN</h3>
+            {data.education.map(e => (
+              <div key={e.id} className="mb-2 text-[11px]"><div className="font-semibold">{e.school}</div><div className="text-white/75">{e.degree} {e.field}</div><div className="text-white/60">{e.startDate} – {e.endDate}</div></div>
+            ))}
+          </section>
+        )}
+        {data.skills.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs mb-2 text-white/90">HERRAMIENTAS</h3>
+            <ul className="space-y-1 text-[11px] text-white/85 list-disc list-inside marker:text-white/50">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </section>
+        )}
+        {data.languages.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs mb-2 text-white/90">IDIOMAS</h3>
+            {data.languages.map(l => <div key={l.id} className="text-[11px] text-white/85">{l.name} <span className="text-white/60">· {l.level}</span></div>)}
+          </section>
+        )}
+      </div>
+    </aside>
+    <main className="flex-1 px-10 pt-12 pb-10">
+      <h1 className="text-3xl font-extrabold tracking-[0.18em] text-[#2c4a6b]">{(data.fullName || "YOUR NAME").toUpperCase()}</h1>
+      <p className="mt-1 text-xs tracking-[0.3em] text-slate-500 uppercase">{data.jobTitle}</p>
+      <div className="mt-2 h-[2px] w-16 bg-[#2c4a6b]" />
+      {data.experience.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-bold tracking-widest text-[#2c4a6b] mb-3">EXPERIENCIA</h2>
+          {data.experience.map(e => (
+            <div key={e.id} className="mb-4">
+              <div className="font-semibold text-slate-900">{e.position}</div>
+              <div className="text-[11px] text-slate-500">{e.company}{e.location && ` · ${e.location}`} | {e.startDate} – {e.endDate}</div>
+              <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
+      {data.projects.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-bold tracking-widest text-[#2c4a6b] mb-3">PROYECTOS</h2>
+          {data.projects.map(p => <div key={p.id} className="mb-3"><div className="font-semibold">{p.name}</div><div className="text-[11px] text-slate-700">{p.description}</div>{p.link && <div className="text-[11px] text-[#2c4a6b]">{p.link}</div>}</div>)}
+        </section>
+      )}
+    </main>
+  </div>
+);
+
+/* 2. Mitchell — Navy header band with corner accent, skill bars */
+export const MitchellTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px]">
+    <header className="relative bg-[#2d4a6b] text-white px-10 pt-8 pb-10 flex items-center gap-6">
+      <Avatar src={data.photo} className="w-24 h-24 rounded-full border-4 border-white shadow-md shrink-0" />
+      <div className="flex-1">
+        <h1 className="text-3xl font-extrabold leading-tight tracking-tight">{(data.fullName || "Your Name").toUpperCase()}</h1>
+        <div className="inline-block mt-2 px-3 py-1 bg-white/15 text-[11px] tracking-[0.25em] uppercase">{data.jobTitle}</div>
+      </div>
+      <div className="absolute top-0 right-0 w-16 h-16" style={{ background: "linear-gradient(135deg, transparent 50%, #ffffff 50%)" }} />
+    </header>
+    <div className="grid grid-cols-[230px_1fr]">
+      <aside className="bg-slate-50 px-6 py-7 space-y-6">
+        <section>
+          <h3 className="font-bold tracking-widest text-xs text-[#2d4a6b] mb-2">CONTACT</h3>
+          <div className="space-y-1.5 text-[11px] text-slate-700">
+            {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0 text-[#2d4a6b]" />{data.phone}</div>}
+            {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0 text-[#2d4a6b]" />{data.email}</div>}
+            {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0 text-[#2d4a6b]" />{data.location}</div>}
+            {data.website && <div className="flex gap-2 break-all"><Globe className="w-3 h-3 mt-0.5 shrink-0 text-[#2d4a6b]" />{data.website}</div>}
+          </div>
+        </section>
+        {data.education.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs text-[#2d4a6b] mb-2">EDUCATION</h3>
+            {data.education.map(e => <div key={e.id} className="mb-2 text-[11px]"><div className="font-semibold">{e.school}</div><div className="text-slate-600">{e.degree} {e.field}</div><div className="text-slate-500">{e.startDate} – {e.endDate}</div></div>)}
+          </section>
+        )}
+        {data.skills.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs text-[#2d4a6b] mb-3">SKILLS</h3>
+            <div className="space-y-2">
+              {data.skills.map((s, i) => (
+                <div key={i}>
+                  <div className="text-[11px] mb-1">{s}</div>
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-[#2d4a6b] rounded-full" style={{ width: `${70 + (i * 7) % 30}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {data.languages.length > 0 && (
+          <section>
+            <h3 className="font-bold tracking-widest text-xs text-[#2d4a6b] mb-2">LANGUAGES</h3>
+            {data.languages.map(l => <div key={l.id} className="text-[11px]">{l.name} <span className="text-slate-500">· {l.level}</span></div>)}
+          </section>
+        )}
+      </aside>
+      <main className="px-9 py-7">
+        {data.summary && <section className="mb-5"><h2 className="font-bold tracking-widest text-sm text-[#2d4a6b] mb-2">ABOUT ME</h2><p className="text-[11.5px] text-slate-700 leading-relaxed">{data.summary}</p></section>}
+        {data.experience.length > 0 && (
+          <section>
+            <h2 className="font-bold tracking-widest text-sm text-[#2d4a6b] mb-3">WORK EXPERIENCE</h2>
+            {data.experience.map(e => (
+              <div key={e.id} className="mb-4">
+                <div className="flex justify-between items-baseline"><h3 className="font-semibold">{e.position}</h3><span className="text-[10px] text-slate-500">{e.startDate} – {e.endDate}</span></div>
+                <div className="text-[11px] text-[#2d4a6b] font-medium">{e.company}{e.location && ` · ${e.location}`}</div>
+                <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+      </main>
+    </div>
+  </div>
+);
+
+/* 3. Flores — Peach sidebar, script name, circular photo */
+export const FloresTemplate = ({ data }: Props) => (
+  <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px]">
+    <aside className="w-[225px] bg-[#f4d4c4] px-6 py-8 space-y-6">
+      <Avatar src={data.photo} className="w-32 h-32 rounded-full mx-auto border-[6px] border-white shadow-sm" />
+      <div className="text-center">
+        <p className="text-[11px] tracking-[0.35em] text-[#7a4a3a] uppercase">{data.jobTitle || "Profession"}</p>
+      </div>
+      <section>
+        <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">CONTACTO</h3>
+        <div className="space-y-1.5 text-[11px] text-[#5a3a2a]">
+          {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0" />{data.phone}</div>}
+          {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0" />{data.email}</div>}
+          {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0" />{data.location}</div>}
+        </div>
+      </section>
+      {data.skills.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">HERRAMIENTAS</h3>
+          <ul className="space-y-1 text-[11px] text-[#5a3a2a] list-disc list-inside marker:text-[#7a4a3a]">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+        </section>
+      )}
+      {data.languages.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">IDIOMAS</h3>
+          {data.languages.map(l => <div key={l.id} className="text-[11px] text-[#5a3a2a]">{l.name} <span className="text-[#9a6a5a]">· {l.level}</span></div>)}
+        </section>
+      )}
+    </aside>
+    <main className="flex-1 px-10 pt-12 pb-10">
+      <h1 className="text-5xl text-[#7a4a3a]" style={{ fontFamily: '"Brush Script MT", "Snell Roundhand", cursive' }}>{data.fullName || "Your Name"}</h1>
+      <div className="mt-1 h-[3px] w-24 bg-[#f4a48a]" />
+      {data.summary && <p className="text-[11.5px] text-slate-700 mt-4 leading-relaxed">{data.summary}</p>}
+      {data.experience.length > 0 && (
+        <section className="mt-7">
+          <h2 className="inline-block bg-[#f4d4c4] text-[#7a4a3a] px-3 py-1 text-[11px] tracking-[0.3em] font-bold mb-3">EXPERIENCIA</h2>
+          {data.experience.map(e => (
+            <div key={e.id} className="mb-4 pl-3 border-l-2 border-[#f4a48a]">
+              <div className="font-semibold">{e.position}</div>
+              <div className="text-[11px] text-[#7a4a3a]">{e.company} | {e.startDate} – {e.endDate}</div>
+              <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
+      {data.education.length > 0 && (
+        <section className="mt-6">
+          <h2 className="inline-block bg-[#f4d4c4] text-[#7a4a3a] px-3 py-1 text-[11px] tracking-[0.3em] font-bold mb-3">FORMACIÓN</h2>
+          {data.education.map(e => <div key={e.id} className="mb-2 pl-3 border-l-2 border-[#f4a48a]"><div className="font-semibold">{e.degree} {e.field}</div><div className="text-[11px] text-[#7a4a3a]">{e.school} | {e.startDate} – {e.endDate}</div></div>)}
+        </section>
+      )}
+    </main>
+  </div>
+);
+
+/* 4. Cortés — Script header, right sidebar with circular photo */
+export const CortesTemplate = ({ data }: Props) => (
+  <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px]">
+    <main className="flex-1 px-10 pt-10 pb-10">
+      <h1 className="text-5xl text-slate-900" style={{ fontFamily: '"Brush Script MT", "Snell Roundhand", cursive' }}>{data.fullName || "Your Name"}</h1>
+      <p className="text-[11px] tracking-[0.4em] text-slate-500 uppercase mt-2">{data.jobTitle}</p>
+      {data.summary && (
+        <section className="mt-6">
+          <h2 className="text-center text-[11px] tracking-[0.4em] font-bold text-slate-700 border-y border-slate-300 py-1.5">EXPERIENCIA LABORAL</h2>
+          <p className="text-[11.5px] text-slate-700 mt-3 leading-relaxed">{data.summary}</p>
+        </section>
+      )}
+      {data.experience.length > 0 && (
+        <section className="mt-6 space-y-4">
+          {data.experience.map(e => (
+            <div key={e.id}>
+              <div className="font-semibold text-slate-900">{e.company} | {e.position}</div>
+              <div className="text-[11px] text-slate-500">{e.startDate} – {e.endDate}{e.location && ` · ${e.location}`}</div>
+              <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
+      {data.languages.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-center text-[11px] tracking-[0.4em] font-bold text-slate-700 border-y border-slate-300 py-1.5">IDIOMAS</h2>
+          <div className="mt-2 text-[11.5px] text-slate-700 space-y-0.5">{data.languages.map(l => <div key={l.id}>{l.name} <span className="text-slate-500">— {l.level}</span></div>)}</div>
+        </section>
+      )}
+    </main>
+    <aside className="w-[200px] bg-[#f4d4c4] px-5 py-8 space-y-6">
+      <Avatar src={data.photo} className="w-28 h-28 rounded-full mx-auto border-[5px] border-white shadow-sm" />
+      <section>
+        <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">CONTACTO</h3>
+        <div className="space-y-1.5 text-[10.5px] text-[#5a3a2a]">
+          {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0" />{data.phone}</div>}
+          {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0" />{data.email}</div>}
+          {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0" />{data.location}</div>}
+          {data.website && <div className="flex gap-2 break-all"><Globe className="w-3 h-3 mt-0.5 shrink-0" />{data.website}</div>}
+        </div>
+      </section>
+      <section>
+        <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">SOBRE MÍ</h3>
+        <p className="text-[10.5px] text-[#5a3a2a] leading-relaxed">{data.summary || "—"}</p>
+      </section>
+      {data.education.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">EDUCACIÓN</h3>
+          {data.education.map(e => <div key={e.id} className="mb-2 text-[10.5px] text-[#5a3a2a]"><div className="font-semibold">{e.degree} {e.field}</div><div>{e.school}</div><div className="text-[#9a6a5a]">{e.startDate} – {e.endDate}</div></div>)}
+        </section>
+      )}
+      {data.skills.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.3em] text-[#7a4a3a] font-bold mb-2">HABILIDADES</h3>
+          <ul className="space-y-1 text-[10.5px] text-[#5a3a2a] list-disc list-inside marker:text-[#7a4a3a]">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+        </section>
+      )}
+    </aside>
+  </div>
+);
+
+/* 5. Álvarez — Pink curved shapes, modern feminine */
+export const AlvarezTemplate = ({ data }: Props) => (
+  <div className="relative min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px] overflow-hidden">
+    <div className="absolute top-0 left-0 w-[260px] h-[260px] rounded-full bg-[#fde0e8] -translate-x-1/3 -translate-y-1/3" />
+    <div className="absolute top-0 right-0 w-[180px] h-[180px] rounded-full bg-[#f8b4c4] translate-x-1/3 -translate-y-1/3" />
+    <div className="absolute bottom-0 left-0 w-[200px] h-[200px] rounded-full bg-[#fde0e8] -translate-x-1/2 translate-y-1/2" />
+    <div className="relative grid grid-cols-[210px_1fr] gap-8 px-10 pt-12 pb-10">
+      <aside className="space-y-6">
+        <Avatar src={data.photo} className="w-36 h-36 rounded-full mx-auto border-[6px] border-white shadow-md" />
+        <section>
+          <h3 className="text-center text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-2 px-3 py-1 bg-[#fde0e8] rounded-full">CONTACTO</h3>
+          <div className="space-y-1.5 text-[11px] text-slate-700">
+            {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0 text-[#c43a6a]" />{data.phone}</div>}
+            {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0 text-[#c43a6a]" />{data.email}</div>}
+            {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0 text-[#c43a6a]" />{data.location}</div>}
+          </div>
+        </section>
+        {data.languages.length > 0 && (
+          <section>
+            <h3 className="text-center text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-2 px-3 py-1 bg-[#fde0e8] rounded-full">IDIOMAS</h3>
+            {data.languages.map(l => <div key={l.id} className="text-[11px] text-slate-700">{l.name} <span className="text-slate-500">· {l.level}</span></div>)}
+          </section>
+        )}
+        {data.skills.length > 0 && (
+          <section>
+            <h3 className="text-center text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-2 px-3 py-1 bg-[#fde0e8] rounded-full">HABILIDADES</h3>
+            <ul className="space-y-1 text-[11px] text-slate-700 list-disc list-inside marker:text-[#c43a6a]">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </section>
+        )}
+      </aside>
+      <main>
+        <h1 className="text-4xl font-extrabold text-slate-900 leading-tight">{(data.fullName || "Your Name").toUpperCase()}</h1>
+        <p className="text-[11px] tracking-[0.4em] text-[#c43a6a] uppercase mt-2">{data.jobTitle}</p>
+        {data.summary && (
+          <section className="mt-5">
+            <h2 className="text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-1">ACERCA DE MÍ</h2>
+            <p className="text-[11.5px] text-slate-700 leading-relaxed">{data.summary}</p>
+          </section>
+        )}
+        {data.experience.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-3">EXPERIENCIA</h2>
+            {data.experience.map(e => (
+              <div key={e.id} className="mb-4">
+                <div className="font-semibold">{e.position}</div>
+                <div className="text-[11px] text-[#c43a6a]">{e.company} · {e.startDate} – {e.endDate}</div>
+                <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-[11px] tracking-[0.3em] font-bold text-[#c43a6a] mb-3">ESTUDIOS</h2>
+            {data.education.map(e => <div key={e.id} className="mb-2"><div className="font-semibold">{e.degree} {e.field}</div><div className="text-[11px] text-slate-600">{e.school} · {e.startDate} – {e.endDate}</div></div>)}
+          </section>
+        )}
+      </main>
+    </div>
+  </div>
+);
+
+/* 6. Silva — Sage green sidebar, wellness/counselor style */
+export const SilvaTemplate = ({ data }: Props) => (
+  <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans text-[12px]">
+    <aside className="w-[225px] bg-[#5a6e5a] text-white px-6 py-8 space-y-6">
+      <Avatar src={data.photo} className="w-32 h-32 rounded-full mx-auto border-[5px] border-white/90 shadow-md" />
+      <section>
+        <h3 className="text-[11px] tracking-[0.25em] font-bold mb-2 text-white/90">CONTACT</h3>
+        <div className="space-y-1.5 text-[11px] text-white/85">
+          {data.phone && <div className="flex gap-2"><Phone className="w-3 h-3 mt-0.5 shrink-0" />{data.phone}</div>}
+          {data.email && <div className="flex gap-2 break-all"><Mail className="w-3 h-3 mt-0.5 shrink-0" />{data.email}</div>}
+          {data.location && <div className="flex gap-2"><MapPin className="w-3 h-3 mt-0.5 shrink-0" />{data.location}</div>}
+          {data.website && <div className="flex gap-2 break-all"><Globe className="w-3 h-3 mt-0.5 shrink-0" />{data.website}</div>}
+        </div>
+      </section>
+      {data.skills.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.25em] font-bold mb-2 text-white/90">SKILLS</h3>
+          <ul className="space-y-1 text-[11px] text-white/85 list-disc list-inside marker:text-white/60">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+        </section>
+      )}
+      {data.languages.length > 0 && (
+        <section>
+          <h3 className="text-[11px] tracking-[0.25em] font-bold mb-2 text-white/90">LANGUAGES</h3>
+          {data.languages.map(l => <div key={l.id} className="text-[11px] text-white/85">{l.name} <span className="text-white/60">· {l.level}</span></div>)}
+        </section>
+      )}
+    </aside>
+    <main className="flex-1 px-10 pt-10 pb-10">
+      <h1 className="text-4xl font-bold text-[#3a4e3a] leading-tight" style={{ fontFamily: '"Georgia", serif' }}>{data.fullName || "Your Name"}</h1>
+      <p className="text-[12px] tracking-[0.2em] text-slate-500 mt-1 uppercase">{data.jobTitle}</p>
+      <div className="mt-3 h-[2px] w-20 bg-[#5a6e5a]" />
+      {data.summary && (
+        <section className="mt-6">
+          <h2 className="text-[12px] tracking-[0.25em] font-bold text-[#5a6e5a] mb-2 uppercase">Professional Summary</h2>
+          <p className="text-[11.5px] text-slate-700 leading-relaxed">{data.summary}</p>
+        </section>
+      )}
+      {data.education.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-[12px] tracking-[0.25em] font-bold text-[#5a6e5a] mb-2 uppercase">Education</h2>
+          {data.education.map(e => (
+            <div key={e.id} className="mb-2 flex justify-between items-baseline">
+              <div><div className="font-semibold">{e.degree} {e.field}</div><div className="text-[11px] text-slate-600">{e.school}</div></div>
+              <div className="text-[10.5px] text-slate-500">{e.startDate} – {e.endDate}</div>
+            </div>
+          ))}
+        </section>
+      )}
+      {data.experience.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-[12px] tracking-[0.25em] font-bold text-[#5a6e5a] mb-2 uppercase">Experience</h2>
+          {data.experience.map(e => (
+            <div key={e.id} className="mb-4">
+              <div className="flex justify-between items-baseline"><h3 className="font-semibold">{e.position}</h3><span className="text-[10.5px] text-slate-500">{e.startDate} – {e.endDate}</span></div>
+              <div className="text-[11px] text-[#5a6e5a]">{e.company}{e.location && ` · ${e.location}`}</div>
+              <p className="text-[11.5px] text-slate-700 mt-1 leading-relaxed">{e.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
+    </main>
+  </div>
+);
