@@ -101,59 +101,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Explore templates — colored category cards */}
-      <section className="container py-16">
-        <h2 className="text-3xl font-bold mb-8">Explore templates</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-          {EXPLORE.map(card => (
-            <button
-              key={card.id}
-              onClick={() => navigate(`/builder?template=${card.id}`)}
-              className={`group relative h-44 rounded-2xl bg-gradient-to-br ${card.bg} p-6 text-left overflow-hidden hover:shadow-elegant transition-base`}
-            >
-              <h3 className="text-xl font-bold text-slate-900 relative z-10">{card.title}</h3>
-              <div className="absolute -bottom-6 -right-4 w-32 h-44 rounded-xl bg-white shadow-elegant rotate-6 group-hover:rotate-3 transition-base overflow-hidden">
-                <div className="absolute inset-0 origin-top-left scale-[0.16]">
-                  <CVPreview data={SAMPLE_CV} template={card.id as any} />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* All templates grid */}
-      <section className="container pb-20">
+      {/* Filtered templates grid */}
+      <section className="container py-14">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold">All templates</h2>
-            <p className="text-muted-foreground mt-1">{TEMPLATES.length} professional designs — pick one to start.</p>
+            <h2 className="text-3xl font-bold">{activeCat === "All" ? "All templates" : `${activeCat} templates`}</h2>
+            <p className="text-muted-foreground mt-1">{filtered.length} {filtered.length === 1 ? "design" : "designs"} — pick one to start.</p>
           </div>
-          <Link to="/templates"><Button variant="outline">View gallery</Button></Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {TEMPLATES.map(t => (
-            <button
-              key={t.id}
-              onClick={() => navigate(`/builder?template=${t.id}`)}
-              className="group text-left"
-            >
-              <div className="aspect-[210/297] rounded-xl overflow-hidden border border-border bg-white shadow-soft group-hover:shadow-elegant transition-base relative">
-                <div className="absolute inset-0 origin-top-left scale-[0.32]">
-                  <CVPreview data={SAMPLE_CV} template={t.id} />
+        {filtered.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">No templates match your search.</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filtered.map(t => (
+              <button
+                key={t.id}
+                onClick={() => navigate(`/builder?template=${t.id}`)}
+                className="group text-left"
+              >
+                <div className="aspect-[210/297] rounded-xl overflow-hidden border border-border bg-white shadow-soft group-hover:shadow-elegant transition-base relative">
+                  <div className="absolute inset-0 origin-top-left scale-[0.32]">
+                    <CVPreview data={SAMPLE_CV} template={t.id} />
+                  </div>
+                  <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-base">
+                    <Star className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
                 </div>
-                <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-base">
-                  <Star className="w-3.5 h-3.5 text-amber-500" />
+                <div className="mt-3">
+                  <h3 className="font-semibold text-sm">{t.name}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
                 </div>
-              </div>
-              <div className="mt-3">
-                <h3 className="font-semibold text-sm">{t.name}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* How it works */}
