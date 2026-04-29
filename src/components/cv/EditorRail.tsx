@@ -38,7 +38,7 @@ const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
 const MIN_FONT = 8;
 const MAX_FONT = 72;
 
-export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
+export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
   const [active, setActive] = useState<RailKey | null>("templates");
 
   // Magic Write state
