@@ -25,6 +25,7 @@ import {
   type NewSectionTemplate,
 } from "@/lib/cv-section-tools";
 import { SectionPositionDialog } from "@/components/cv/SectionPositionDialog";
+import { buildStandaloneHtml, exportToPdf } from "@/lib/cv-export";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
@@ -501,12 +502,7 @@ const Builder = () => {
 
   const buildExportHtml = (): string => {
     if (!editableRef.current) return "";
-    const clone = editableRef.current.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
-    const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
-      .map(n => n.outerHTML).join("\n");
-    const fontFamily = editableRef.current.style.fontFamily || "";
-    return `<!doctype html><html><head><meta charset="utf-8"><title>${data.fullName || "CV"}</title>${styles}<style>body{margin:0;padding:24px;background:#fff;font-family:${fontFamily || "Inter, system-ui, sans-serif"};}</style></head><body>${clone.innerHTML}</body></html>`;
+    return buildStandaloneHtml(editableRef.current, data.fullName || "CV");
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -526,22 +522,15 @@ const Builder = () => {
 
   const handleExportPdf = async () => {
     await saveBeforeExport();
-    setTimeout(() => {
-      const printArea = document.getElementById("cv-print-area");
-      if (printArea && editableRef.current) {
-        const clone = editableRef.current.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
-        printArea.innerHTML = clone.innerHTML;
-        const extra = Math.max(0, manualPages - measuredPages);
-        for (let i = 0; i < extra; i++) {
-          const blank = document.createElement("div");
-          blank.className = "page-break";
-          blank.style.cssText = "height: 297mm; width: 210mm;";
-          printArea.appendChild(blank);
-        }
-      }
-      window.print();
-    }, 250);
+    if (!editableRef.current) return;
+    toast.loading("Generating PDF…", { id: "export-pdf" });
+    try {
+      await exportToPdf(editableRef.current, `${data.fullName || "cv"}.pdf`);
+      toast.success("PDF downloaded", { id: "export-pdf" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not generate PDF", { id: "export-pdf" });
+    }
   };
 
   const handleExportHtml = async () => {
