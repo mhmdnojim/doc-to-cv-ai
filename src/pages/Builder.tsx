@@ -555,9 +555,24 @@ const Builder = () => {
                 {saving ? "Saving…" : lastSavedAt ? "Saved ✓" : "Save"}
               </Button>
             )}
-            <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
-              <Download className="w-4 h-4 mr-2" /> Export PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-gradient-primary shadow-glow">
+                  <Download className="w-4 h-4 mr-2" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleExportPdf}>
+                  <FileText className="w-4 h-4 mr-2" /> PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportHtml}>
+                  <FileCode className="w-4 h-4 mr-2" /> HTML
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportDocx}>
+                  <FileType className="w-4 h-4 mr-2" /> Word document (.doc)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </nav>
