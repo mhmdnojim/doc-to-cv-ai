@@ -12,6 +12,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  injectSectionTools,
+  cleanupTools,
+  listSections,
+  insertAtLocation,
+  buildSectionElement,
+  type SectionLocation,
+  type SectionInfo,
+  type NewSectionTemplate,
+} from "@/lib/cv-section-tools";
+import { SectionPositionDialog } from "@/components/cv/SectionPositionDialog";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
@@ -311,47 +322,61 @@ const Builder = () => {
     return () => clearTimeout(t);
   }, [data, template]);
 
-  // Insert a custom section into the left sidebar or right main area of the editable CV
-  const addCustomSection = (side: "left" | "right") => {
+  // ===== Section position picker dialog =====
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerSpec, setPickerSpec] = useState<NewSectionTemplate>({ type: "custom" });
+  const [pickerSections, setPickerSections] = useState<SectionInfo[]>([]);
+
+  // Open the position picker for a given section type
+  const addSectionAt = useCallback((spec: NewSectionTemplate) => {
     const root = editableRef.current;
     if (!root) { toast.error("Open the CV first"); return; }
-    // Heuristic: find a vertical column that contains existing headings
-    const candidates = Array.from(root.querySelectorAll<HTMLElement>("aside, main, section, div"));
-    // Score each candidate by how far its center is from the left edge
-    const scored = candidates
-      .filter(el => {
-        const r = el.getBoundingClientRect();
-        return r.width > 80 && r.height > 200; // ignore tiny wrappers
-      })
-      .map(el => {
-        const r = el.getBoundingClientRect();
-        const rootRect = root.getBoundingClientRect();
-        const relX = (r.left + r.width / 2 - rootRect.left) / rootRect.width;
-        return { el, relX, area: r.width * r.height };
-      });
-    // Pick smallest column on the requested side
-    let target: HTMLElement | null = null;
-    if (side === "left") {
-      const left = scored.filter(s => s.relX < 0.5).sort((a, b) => a.area - b.area)[0];
-      target = left?.el || null;
-    } else {
-      const right = scored.filter(s => s.relX >= 0.5).sort((a, b) => a.area - b.area)[0];
-      target = right?.el || null;
-    }
-    // Fallback: append to root
-    if (!target) target = root.firstElementChild as HTMLElement || root;
+    setPickerSpec(spec);
+    setPickerSections(listSections(root));
+    setPickerOpen(true);
+  }, []);
 
-    const uniqueTitle = `New Section ${Date.now().toString().slice(-4)}`;
-    const sec = document.createElement("section");
-    sec.style.cssText = "margin-top:1.25rem;";
-    sec.innerHTML = `
-      <h2 style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:0.85rem;margin-bottom:0.5rem;border-bottom:1px solid currentColor;padding-bottom:0.25rem;opacity:0.95;">${uniqueTitle}</h2>
-      <p style="font-size:0.85rem;line-height:1.5;opacity:0.9;">Click here to write the content of your new section. You can list anything: certifications, awards, hobbies, references, volunteering…</p>
-    `;
-    target.appendChild(sec);
-    setPendingFocusText(uniqueTitle);
-    toast.success(`Custom section added to the ${side} side`);
+  // Perform an actual DOM insertion at a specific location
+  const performInsert = useCallback((where: SectionLocation, spec: NewSectionTemplate) => {
+    const root = editableRef.current;
+    if (!root) return;
+    const sec = buildSectionElement(spec);
+    const ok = insertAtLocation(root, where, sec);
+    if (!ok) { toast.error("Couldn't find that location"); return; }
+    const headingText = sec.querySelector("h2")?.textContent || "";
+    if (headingText) setPendingFocusText(headingText);
+    toast.success("Section added");
+    // Re-inject tools so the new section gets handles
+    setTimeout(() => {
+      injectSectionTools(root, { onInsert: (w) => {
+        setPickerSpec({ type: "custom" });
+        setPickerSections(listSections(root));
+        // For inline gap clicks, insert a custom section directly without dialog
+        performInsert(w, { type: "custom" });
+      }});
+    }, 80);
+  }, []);
+
+  // Backwards-compat: addCustomSection still exists for the legacy left/right buttons
+  const addCustomSection = (side: "left" | "right") => {
+    performInsert({ mode: "end", column: side }, { type: "custom" });
   };
+
+  // Inject inline gap-buttons + drag-handles whenever the editable CV changes
+  useEffect(() => {
+    const root = editableRef.current;
+    if (!root) return;
+    const t = setTimeout(() => {
+      injectSectionTools(root, {
+        onInsert: (where) => {
+          // Inline "+ here" → insert a custom section at that exact spot
+          performInsert(where, { type: "custom" });
+        },
+      });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [data, template, performInsert]);
+
 
 
   const handleTemplateChange = (t: string) => {
@@ -362,7 +387,7 @@ const Builder = () => {
   const buildExportHtml = (): string => {
     if (!editableRef.current) return "";
     const clone = editableRef.current.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+    clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
     const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
       .map(n => n.outerHTML).join("\n");
     const fontFamily = editableRef.current.style.fontFamily || "";
@@ -390,7 +415,7 @@ const Builder = () => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
         const clone = editableRef.current.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+        clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
         printArea.innerHTML = clone.innerHTML;
         const extra = Math.max(0, manualPages - measuredPages);
         for (let i = 0; i < extra; i++) {
@@ -696,7 +721,7 @@ const Builder = () => {
             <EditorRail
               templatesPanel={templatesPanel}
               editorRef={editableRef}
-              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, loadSample, clearAll }}
+              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, addSectionAt, loadSample, clearAll }}
             />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden lg:overflow-y-auto lg:h-full">
@@ -915,6 +940,16 @@ const Builder = () => {
         }}
         editing={editingTemplate}
       />
+
+      {/* Section position picker */}
+      <SectionPositionDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        sections={pickerSections}
+        defaultSpec={pickerSpec}
+        onConfirm={performInsert}
+      />
+
 
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">

@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare } from "lucide-react";
+import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { NewSectionTemplate } from "@/lib/cv-section-tools";
 
 type RailKey = "templates" | "add" | "text" | "magic";
 
@@ -15,6 +16,8 @@ interface AddActions {
   addLanguage: () => void;
   addProject: () => void;
   addCustomSection: (side: "left" | "right") => void;
+  /** Open the position picker dialog to insert a section at a specific spot */
+  addSectionAt: (spec: NewSectionTemplate) => void;
   loadSample: () => void;
   clearAll: () => void;
 }
@@ -232,10 +235,14 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
 
             {active === "add" && (
               <div className="space-y-4">
-                <p className="text-xs text-muted-foreground">Add new sections or items to your CV.</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Tip:</strong> Hover between sections in the CV to see <span className="text-primary">+ Add here</span>, or drag the <MoveVertical className="w-3 h-3 inline" /> handle to reorder.
+                </p>
+
                 <div>
-                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Sections</label>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Add a quick item</label>
+                  <p className="text-[10px] text-muted-foreground mb-2 mt-0.5">Adds to the existing section instantly.</p>
+                  <div className="grid grid-cols-2 gap-2">
                     <Button size="sm" variant="outline" onClick={addActions.addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
                     <Button size="sm" variant="outline" onClick={addActions.addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
                     <Button size="sm" variant="outline" onClick={addActions.addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
@@ -243,13 +250,20 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
                     <Button size="sm" variant="outline" onClick={addActions.addProject} className="col-span-2"><Plus className="w-3 h-3 mr-1" />Project</Button>
                   </div>
                 </div>
+
                 <div>
-                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Custom section</label>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("left")}>← Left</Button>
-                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("right")}>Right →</Button>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Add a new section</label>
+                  <p className="text-[10px] text-muted-foreground mb-2 mt-0.5">Picks where to place it (start, end, or after another section).</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "experience" })}><Plus className="w-3 h-3 mr-1" />Experience</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "education" })}><Plus className="w-3 h-3 mr-1" />Education</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "skills" })}><Plus className="w-3 h-3 mr-1" />Skills</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "languages" })}><Plus className="w-3 h-3 mr-1" />Languages</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "projects" })}><Plus className="w-3 h-3 mr-1" />Projects</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addSectionAt({ type: "custom" })}><Plus className="w-3 h-3 mr-1" />Custom</Button>
                   </div>
                 </div>
+
                 <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
                   <button onClick={addActions.loadSample} className="text-primary hover:underline">Load sample</button>
                   <button onClick={addActions.clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
