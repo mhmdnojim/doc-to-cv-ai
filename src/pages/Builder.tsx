@@ -359,9 +359,9 @@ const Builder = () => {
           if (!confirm(`Delete this section ("${(h.textContent || "").replace(/\s+/g, " ").trim()}")?`)) return;
           // Remove the closest <section>; otherwise remove the heading + following siblings until next heading
           const section = h.closest("section");
-          if (section) { section.remove(); return; }
+          if (section) { section.remove(); snapshotHistory(); return; }
           const parent = h.parentElement;
-          if (!parent) { h.remove(); return; }
+          if (!parent) { h.remove(); snapshotHistory(); return; }
           const toRemove: Element[] = [h];
           let sib = h.nextElementSibling;
           while (sib && !["H2", "H3"].includes(sib.tagName)) {
@@ -369,6 +369,7 @@ const Builder = () => {
             sib = sib.nextElementSibling;
           }
           toRemove.forEach(el => el.remove());
+          snapshotHistory();
         }));
       });
     }, 50);
