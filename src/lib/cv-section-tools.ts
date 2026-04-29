@@ -521,17 +521,14 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
 
-      // Gap button BEFORE this section (idx 0 = "start of column")
-      const gap = makeGapButton(() => {
-        opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id });
+      // Hover frame: "+" above (insert before / start) and "+" below (insert after / end)
+      attachHoverFrame(sec.el, {
+        label: "section",
+        onInsertAbove: () =>
+          opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id }),
+        onInsertBelow: () =>
+          opts.onInsert(idx === inCol.length - 1 ? { mode: "end", column: col } : { mode: "after", sectionId: sec.id }),
       });
-      sec.el.parentElement?.insertBefore(gap, sec.el);
-
-      // Gap button AFTER the last section
-      if (idx === inCol.length - 1) {
-        const gapEnd = makeGapButton(() => opts.onInsert({ mode: "end", column: col }));
-        sec.el.parentElement?.insertBefore(gapEnd, sec.el.nextSibling);
-      }
 
       // Inject "Add subsection here" gaps for repeating items inside this section.
       injectSubsectionGaps(sec.el, opts);
