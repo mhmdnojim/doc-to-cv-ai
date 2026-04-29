@@ -188,38 +188,53 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
                 </div>
 
                 <div>
-                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Font size</label>
-                  <div className="mt-1.5 grid grid-cols-4 gap-1.5">
-                    {FONT_SIZES.map(sz => (
-                      <button
-                        key={sz}
-                        onClick={() => setFontSize(sz)}
-                        className="text-xs py-1.5 rounded border border-border hover:border-primary hover:text-primary transition-base"
-                      >
-                        {sz}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Font size</label>
+                    <span className="text-xs font-semibold tabular-nums">{currentSize}px</span>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Quick adjust</label>
-                  <div className="mt-1.5 flex gap-1">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
-                      const sel = window.getSelection();
-                      if (!sel || sel.isCollapsed) { toast.info("Select some text first"); return; }
-                      // Read current size from the focus node and step down
-                      const node = sel.anchorNode?.parentElement;
-                      const cur = parseInt(window.getComputedStyle(node!).fontSize) || 14;
-                      setFontSize(Math.max(8, cur - 1));
-                    }}><Minus className="w-3.5 h-3.5" /></Button>
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => {
-                      const sel = window.getSelection();
-                      if (!sel || sel.isCollapsed) { toast.info("Select some text first"); return; }
-                      const node = sel.anchorNode?.parentElement;
-                      const cur = parseInt(window.getComputedStyle(node!).fontSize) || 14;
-                      setFontSize(Math.min(96, cur + 1));
-                    }}><Plus className="w-3.5 h-3.5" /></Button>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => {
+                        const next = Math.max(MIN_FONT, currentSize - 1);
+                        setCurrentSize(next);
+                        setFontSize(next);
+                      }}
+                      title="Decrease"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </Button>
+                    <Slider
+                      value={[currentSize]}
+                      min={MIN_FONT}
+                      max={MAX_FONT}
+                      step={1}
+                      onValueChange={(v) => {
+                        const px = v[0];
+                        setCurrentSize(px);
+                        setFontSize(px);
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => {
+                        const next = Math.min(MAX_FONT, currentSize + 1);
+                        setCurrentSize(next);
+                        setFontSize(next);
+                      }}
+                      title="Increase"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                    <span>{MIN_FONT}</span>
+                    <span>{MAX_FONT}</span>
                   </div>
                 </div>
 
