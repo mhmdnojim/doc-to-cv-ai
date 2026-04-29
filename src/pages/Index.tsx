@@ -170,7 +170,7 @@ const Index = () => {
         onOpenChange={setShowUpload}
         onCreated={(id) => { if (id) navigate(`/builder?template=${id}`); }}
       />
-      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
+      
     </div>
   );
 };
