@@ -288,6 +288,58 @@ export default function PagesChecker() {
       update("url", { status: "warn", detail: "Skipped — Pages not enabled." });
     }
 
+    // 6. Built app health probe
+    let builtSiteOk = false;
+    if (pagesOk && pagesUrl) {
+      try {
+        const health = await probeBuiltSite(pagesUrl);
+        const expectedBaseUrl = normalizeUrl(pagesUrl);
+        if (!health.ok || normalizeUrl(health.baseUrl) !== expectedBaseUrl) {
+          throw new Error(`App loaded, but its base URL is ${health.baseUrl || "unknown"}.`);
+        }
+        builtSiteOk = true;
+        update("built-site", {
+          status: "ok",
+          detail: `React app loaded from ${pagesUrl}`,
+        });
+      } catch (e: any) {
+        update("built-site", {
+          status: "fail",
+          detail: e?.message ?? "The built app did not load in the browser.",
+          fix: <>Confirm the latest GitHub Actions deployment completed, then wait 1–2 minutes for Pages to update.</>,
+        });
+      }
+    } else {
+      update("built-site", { status: "warn", detail: "Skipped — Pages not enabled." });
+    }
+
+    // 7. /builder SPA fallback + post-login redirect target
+    if (builtSiteOk && pagesUrl) {
+      const builderUrl = new URL("builder", pagesUrl).toString();
+      try {
+        const health = await probeBuiltSite(builderUrl);
+        const expectedPath = new URL(builderUrl).pathname;
+        if (health.pathname !== expectedPath) {
+          throw new Error(`Expected ${expectedPath}, but the app reported ${health.pathname}.`);
+        }
+        if (normalizeUrl(health.builderRedirectUrl) !== normalizeUrl(builderUrl)) {
+          throw new Error(`Login redirect points to ${health.builderRedirectUrl} instead of ${builderUrl}.`);
+        }
+        update("builder-redirect", {
+          status: "ok",
+          detail: `Deep link loads and OAuth redirect targets ${builderUrl}`,
+        });
+      } catch (e: any) {
+        update("builder-redirect", {
+          status: "fail",
+          detail: e?.message ?? "/builder did not load correctly from GitHub Pages.",
+          fix: <>Re-run the deploy workflow so GitHub Pages receives the latest SPA fallback and base-path fixes.</>,
+        });
+      }
+    } else {
+      update("builder-redirect", { status: "warn", detail: "Skipped — built site did not pass." });
+    }
+
     setRunning(false);
   }
 
