@@ -666,26 +666,7 @@ const Builder = () => {
             {isAdmin && (
               <Link to="/admin"><Button variant="ghost" size="sm" title="Admin panel"><ShieldCheck className="w-4 h-4" /></Button></Link>
             )}
-            {user ? (
-              <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
-                <LogOut className="w-4 h-4 mr-1.5" />
-                <span className="hidden sm:inline">Sign out</span>
-              </Button>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm" title="Sign in">
-                    <LogIn className="w-4 h-4 mr-1.5" />
-                    <span className="hidden sm:inline">Sign in</span>
-                  </Button>
-                </Link>
-                <Link to="/auth?mode=signup">
-                  <Button size="sm" title="Create an account">
-                    Sign up
-                  </Button>
-                </Link>
-              </div>
-            )}
+            <AuthPill />
             <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted/60 rounded-md px-2 py-1.5 border border-border">
               <FileText className="w-3.5 h-3.5" />
               <span>Page {totalPages === 1 ? "1" : `1 / ${totalPages}`}</span>
