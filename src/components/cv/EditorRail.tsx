@@ -44,6 +44,12 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
       if (editor && editor.contains(range.commonAncestorContainer)) {
         savedRange.current = range.cloneRange();
         setLastSelection(sel.toString());
+        // Read computed font-size of the focused node
+        const node = (sel.anchorNode?.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode as HTMLElement) || null;
+        if (node) {
+          const px = parseInt(window.getComputedStyle(node).fontSize);
+          if (!isNaN(px)) setCurrentSize(Math.min(MAX_FONT, Math.max(MIN_FONT, px)));
+        }
       }
     };
     document.addEventListener("selectionchange", onSelChange);
