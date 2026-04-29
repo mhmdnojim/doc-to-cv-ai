@@ -2302,3 +2302,74 @@ export const NapolitaniTemplate = ({ data }: Props) => (
     </main>
   </div>
 );
+
+/* ============================ BATCH 7 ============================ */
+
+export const OliviaWilsonTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-[#f4f1ec] text-stone-900 font-serif p-10">
+    <header className="grid grid-cols-12 gap-6 items-center pb-5 border-b border-stone-300">
+      <div className="col-span-3">
+        <Avatar src={data.photo} className="w-28 h-28 rounded-full object-cover grayscale" />
+      </div>
+      <div className="col-span-9">
+        <h1 className="text-5xl font-light tracking-[0.15em] uppercase">{data.fullName || "Your Name"}</h1>
+        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-0.5 text-xs font-sans text-stone-600">
+          {data.email && <span>✉ {data.email}</span>}
+          {data.website && <span>🌐 {data.website}</span>}
+          {data.phone && <span>📞 {data.phone}</span>}
+        </div>
+      </div>
+    </header>
+    {data.summary && (
+      <section className="text-center my-7">
+        <h2 className="text-3xl font-light italic mb-2">Introduction</h2>
+        <p className="font-sans text-xs text-stone-700 leading-relaxed max-w-3xl mx-auto">{data.summary}</p>
+      </section>
+    )}
+    <div className="grid grid-cols-2 gap-8 text-sm">
+      {data.experience.length > 0 && (
+        <section>
+          <h2 className="text-xs uppercase tracking-[0.3em] font-bold text-center pb-2 border-b border-stone-300 mb-3">Esperienze Lavorative</h2>
+          <div className="font-sans space-y-3">
+            {data.experience.map(e => (
+              <div key={e.id}>
+                <p className="text-[10px] uppercase tracking-wider text-stone-500">{e.company} ({e.startDate} – {e.endDate})</p>
+                <p className="font-bold text-xs">{e.position}</p>
+                <p className="text-xs text-stone-700 mt-0.5 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {data.education.length > 0 && (
+        <section>
+          <h2 className="text-xs uppercase tracking-[0.3em] font-bold text-center pb-2 border-b border-stone-300 mb-3">Istruzione</h2>
+          <div className="font-sans space-y-3">
+            {data.education.map(e => (
+              <div key={e.id}>
+                <p className="text-[10px] uppercase tracking-wider text-stone-500">{e.school} ({e.startDate} – {e.endDate})</p>
+                <p className="font-bold text-xs">{e.degree} {e.field}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+    {data.skills.length > 0 && (
+      <section className="mt-7">
+        <div className="grid grid-cols-2 gap-8 font-sans">
+          {[data.skills.slice(0, Math.ceil(data.skills.length / 2)), data.skills.slice(Math.ceil(data.skills.length / 2))].map((col, ci) => (
+            <div key={ci} className="space-y-2">
+              {col.map((s, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="bg-stone-800 text-white text-[10px] rounded-full w-10 h-10 flex items-center justify-center shrink-0">★</span>
+                  <span className="text-xs">{s}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+);

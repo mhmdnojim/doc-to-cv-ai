@@ -55,7 +55,8 @@ export type TemplateId =
   | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan"
   | "kovacs" | "leclerc"
   | "mendez" | "navarro-pro" | "grasso"
-  | "gibbons" | "gallego-pro" | "mae-evans" | "napolitani";
+  | "gibbons" | "gallego-pro" | "mae-evans" | "napolitani"
+  | "olivia-wilson";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -106,6 +107,7 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "gallego-pro", name: "Gallego Pro", description: "Gray photo header with teal accent labels", accent: "from-[#cfd5db] to-[#5b8da3]" },
   { id: "mae-evans", name: "Mae Evans", description: "Warm cream serif with circular photo", accent: "from-[#f4ead8] to-[#c9b88a]" },
   { id: "napolitani", name: "Napolitani", description: "Clean serif with coral accents and right photo", accent: "from-[#d97757] to-[#a8593f]" },
+  { id: "olivia-wilson", name: "Olivia Wilson", description: "Centered editorial with grayscale photo and star skill chips", accent: "from-stone-700 to-stone-900" },
 ];
 
 export const EMPTY_CV: CVData = {
