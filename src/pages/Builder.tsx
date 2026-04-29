@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CVForm } from "@/components/cv/CVForm";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, Sparkles, FileText, LayoutTemplate, X, Check } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "cv-builder-data";
@@ -15,7 +14,9 @@ const Builder = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTemplate = (searchParams.get("template") as TemplateId) || "modern";
   const [template, setTemplate] = useState<TemplateId>(initialTemplate);
-  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
+  const editableRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<CVData>(() => {
     try {
@@ -23,19 +24,12 @@ const Builder = () => {
       const touched = localStorage.getItem(HAS_DATA_KEY);
       if (saved && touched) return JSON.parse(saved);
     } catch {}
-    // First visit: prefill with sample so the chosen template is visible
     return SAMPLE_CV;
   });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
-
-  // Mark data as user-touched once they edit
-  const handleDataChange = (next: CVData) => {
-    localStorage.setItem(HAS_DATA_KEY, "1");
-    setData(next);
-  };
 
   const handleTemplateChange = (t: TemplateId) => {
     setTemplate(t);
@@ -44,10 +38,63 @@ const Builder = () => {
 
   const handleExport = () => {
     toast.success("Opening print dialog… save as PDF");
-    setTimeout(() => window.print(), 200);
+    // Sync editable DOM into print area so manual text edits are preserved
+    setTimeout(() => {
+      const printArea = document.getElementById("cv-print-area");
+      if (printArea && editableRef.current) {
+        printArea.innerHTML = editableRef.current.innerHTML;
+      }
+      window.print();
+    }, 200);
   };
 
-  const loadSample = () => { handleDataChange(SAMPLE_CV); toast.success("Sample data loaded"); };
+  // Update array sections directly
+  const addExperience = () => {
+    const next = { ...data, experience: [...data.experience, {
+      id: Date.now().toString(),
+      position: "New Position", company: "Company Name",
+      startDate: "2024", endDate: "Present", location: "City",
+      description: "Click to edit your role description and key achievements.",
+    }]};
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData(next);
+  };
+  const addEducation = () => {
+    const next = { ...data, education: [...data.education, {
+      id: Date.now().toString(),
+      school: "University Name", degree: "Degree", field: "Field of Study",
+      startDate: "2020", endDate: "2024",
+    }]};
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData(next);
+  };
+  const addSkill = () => {
+    const skill = prompt("Enter a skill:");
+    if (skill) { localStorage.setItem(HAS_DATA_KEY, "1"); setData({ ...data, skills: [...data.skills, skill] }); }
+  };
+  const addLanguage = () => {
+    const name = prompt("Language name:");
+    if (!name) return;
+    const level = prompt("Level (Native, Fluent, Intermediate...)") || "Fluent";
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData({ ...data, languages: [...data.languages, { id: Date.now().toString(), name, level }] });
+  };
+  const addProject = () => {
+    const next = { ...data, projects: [...data.projects, {
+      id: Date.now().toString(),
+      name: "Project Name",
+      description: "Brief description of the project and its impact.",
+      link: "",
+    }]};
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData(next);
+  };
+
+  const loadSample = () => {
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData(SAMPLE_CV);
+    toast.success("Sample loaded");
+  };
   const clearAll = () => {
     if (confirm("Clear all data?")) {
       localStorage.removeItem(HAS_DATA_KEY);
@@ -65,9 +112,17 @@ const Builder = () => {
           </Link>
           <div className="flex items-center gap-3">
             <FileText className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-sm">CV Builder</span>
+            <span className="font-semibold text-sm">CV Editor</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant={showUpload ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowUpload(s => !s)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Import CV
+            </Button>
             <Button
               variant={showTemplates ? "default" : "outline"}
               size="sm"
@@ -84,19 +139,15 @@ const Builder = () => {
       </nav>
 
       <div className="container py-6 print:hidden">
-        <div
-          className={`grid gap-6 ${
-            showTemplates
-              ? "lg:grid-cols-[260px_380px_1fr]"
-              : "lg:grid-cols-[420px_1fr]"
-          }`}
-        >
-          {/* Templates sidebar (toggleable) */}
+        <div className={`grid gap-6 ${showTemplates ? "lg:grid-cols-[260px_1fr]" : "lg:grid-cols-1"}`}>
+          {/* Templates sidebar */}
           {showTemplates && (
             <aside className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl border border-border bg-card p-3">
               <div className="flex items-center justify-between mb-3 px-1">
                 <h3 className="font-semibold text-sm">Templates</h3>
-                <button onClick={() => setShowTemplates(false)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+                <button onClick={() => setShowTemplates(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {TEMPLATES.map(t => {
@@ -125,25 +176,67 @@ const Builder = () => {
             </aside>
           )}
 
-          {/* Form column */}
-          <div className="space-y-4 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1">
-            <AIUploader onExtracted={(d) => { localStorage.setItem(HAS_DATA_KEY, "1"); setData(d); }} />
+          {/* Editable preview area */}
+          <div className="space-y-4">
+            {/* Import section */}
+            {showUpload && (
+              <div className="rounded-xl border border-border bg-card p-4 relative">
+                <button
+                  onClick={() => setShowUpload(false)}
+                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <h3 className="font-semibold text-sm">Import from existing CV</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Upload a PDF, DOCX, or TXT — AI will extract all fields and fill your CV automatically.
+                </p>
+                <AIUploader onExtracted={(d) => {
+                  localStorage.setItem(HAS_DATA_KEY, "1");
+                  setData(d);
+                  setShowUpload(false);
+                }} />
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 text-xs">
-              <button onClick={loadSample} className="text-primary hover:underline inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Load sample
-              </button>
-              <span className="text-muted-foreground">·</span>
-              <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
+            {/* Floating add-section toolbar */}
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+              <span className="text-xs font-medium text-muted-foreground mr-1">Add to CV:</span>
+              <Button size="sm" variant="outline" onClick={addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
+              <Button size="sm" variant="outline" onClick={addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
+              <Button size="sm" variant="outline" onClick={addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
+              <Button size="sm" variant="outline" onClick={addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
+              <Button size="sm" variant="outline" onClick={addProject}><Plus className="w-3 h-3 mr-1" />Project</Button>
+              <span className="ml-auto flex items-center gap-2 text-xs">
+                <button onClick={loadSample} className="text-primary hover:underline">Load sample</button>
+                <span className="text-muted-foreground">·</span>
+                <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
+              </span>
             </div>
 
-            <CVForm data={data} onChange={handleDataChange} />
-          </div>
+            <p className="text-xs text-muted-foreground text-center">
+              ✨ Click any text on your CV to edit it directly
+            </p>
 
-          {/* Preview */}
-          <div className="flex justify-center">
-            <div className="rounded-xl shadow-elegant overflow-hidden bg-white origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90" style={{ transformOrigin: "top center" }}>
-              <CVPreview data={data} template={template} />
+            {/* Editable CV preview */}
+            <div className="flex justify-center">
+              <div
+                className="rounded-xl shadow-elegant overflow-hidden bg-white origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                style={{ transformOrigin: "top center" }}
+              >
+                <div
+                  ref={editableRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  spellCheck
+                  className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2 [&_*:hover]:bg-primary/5"
+                >
+                  <CVPreview data={data} template={template} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
