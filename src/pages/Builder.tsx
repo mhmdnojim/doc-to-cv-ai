@@ -570,20 +570,50 @@ const Builder = () => {
               ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
             </p>
 
-            {/* Editable CV preview */}
+            {/* Editable CV preview — paginated A4 sheets */}
             <div className="flex justify-center">
               <div
-                className="rounded-xl shadow-elegant overflow-hidden bg-white origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
                 style={{ transformOrigin: "top center" }}
               >
                 <div
-                  ref={editableRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  spellCheck
-                  className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
+                  className="cv-page-stack relative bg-white shadow-elegant rounded-xl overflow-hidden"
+                  style={{
+                    width: "210mm",
+                    minHeight: `calc(297mm * ${totalPages})`,
+                    backgroundImage: totalPages > 1
+                      ? `repeating-linear-gradient(to bottom, transparent 0, transparent calc(297mm - 1px), hsl(var(--border)) calc(297mm - 1px), hsl(var(--border)) 297mm)`
+                      : undefined,
+                  }}
                 >
-                  <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                  <div
+                    ref={editableRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    spellCheck
+                    className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
+                  >
+                    <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                  </div>
+                  {/* Page number badges */}
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute right-3 text-[10px] font-medium text-muted-foreground bg-white/80 backdrop-blur px-2 py-0.5 rounded-full border border-border print:hidden pointer-events-none"
+                      style={{ top: `calc(297mm * ${i} + 8px)` }}
+                    >
+                      Page {i + 1} / {totalPages}
+                      {i + 1 > measuredPages && (
+                        <button
+                          onClick={() => setManualPages(p => Math.max(1, p - 1))}
+                          className="ml-1.5 text-destructive hover:underline pointer-events-auto"
+                          title="Remove this blank page"
+                        >
+                          remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
