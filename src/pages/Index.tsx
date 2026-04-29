@@ -138,26 +138,6 @@ const Index = () => {
         )}
       </section>
 
-      {/* How it works */}
-      <section className="container pb-24">
-        <h2 className="text-3xl font-bold text-center mb-10">Three ways to start</h2>
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {[
-            { icon: Upload, title: "Upload existing CV", desc: "Drop a PDF or DOCX. AI extracts everything in seconds.", color: "from-indigo-500 to-violet-500" },
-            { icon: Wand2,  title: "Fill in manually",   desc: "Use our intuitive editor with live preview.",        color: "from-pink-500 to-orange-500" },
-            { icon: FileText, title: "Export to PDF",    desc: "Print-ready, ATS-friendly documents.",               color: "from-emerald-500 to-cyan-500" },
-          ].map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="rounded-2xl border border-border bg-card p-6 shadow-soft hover:shadow-elegant transition-base">
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-4`}>
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-semibold text-lg">{title}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground">Built with ❤️ — make every application count.</div>
       </footer>
