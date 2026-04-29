@@ -69,34 +69,104 @@ export function findColumns(root: HTMLElement): { left: HTMLElement | null; righ
 
 let sectionCounter = 0;
 
+const PERSONAL_INFO_ATTR = "data-cv-personal";
+const EMAIL_RE = /[\w.+-]+@[\w-]+\.[\w.-]+/;
+const PHONE_RE = /(\+?\d[\d\s().-]{6,}\d)/;
+
+/**
+ * Find a tight container holding contact info (email/phone/location/website)
+ * inside `scope` and tag it as a synthetic "Personal Information" section.
+ * Idempotent: re-tags only if not already tagged.
+ */
+function tagPersonalInfo(scope: HTMLElement) {
+  if (scope.querySelector(`[${PERSONAL_INFO_ATTR}]`)) return;
+
+  // Find leaf-ish elements containing an email or phone match.
+  const matches: HTMLElement[] = [];
+  const all = scope.querySelectorAll<HTMLElement>("*");
+  all.forEach(el => {
+    if (el.children.length > 4) return; // skip large containers
+    const txt = el.textContent || "";
+    if (txt.length > 200) return;
+    if (EMAIL_RE.test(txt) || PHONE_RE.test(txt)) matches.push(el);
+  });
+  if (matches.length === 0) return;
+
+  // Find their lowest common ancestor.
+  let lca: HTMLElement | null = matches[0];
+  for (let i = 1; i < matches.length && lca; i++) {
+    lca = lowestCommonAncestor(lca, matches[i]);
+  }
+  if (!lca || lca === scope) {
+    // Use the smallest single match if no useful LCA.
+    lca = matches[0];
+  }
+  // Climb until container is reasonably small but not a heading itself.
+  while (lca && lca.parentElement && lca.parentElement !== scope) {
+    const txt = (lca.textContent || "").trim();
+    if (txt.length > 0 && txt.length < 250 && /h[1-6]/i.test(lca.tagName) === false) break;
+    lca = lca.parentElement;
+  }
+  if (!lca || lca === scope) return;
+
+  lca.setAttribute(PERSONAL_INFO_ATTR, "1");
+  if (!lca.getAttribute(SECTION_ATTR)) lca.setAttribute(SECTION_ATTR, `pi${++sectionCounter}`);
+}
+
+function lowestCommonAncestor(a: HTMLElement, b: HTMLElement): HTMLElement | null {
+  const ancestors = new Set<HTMLElement>();
+  let cur: HTMLElement | null = a;
+  while (cur) { ancestors.add(cur); cur = cur.parentElement; }
+  cur = b;
+  while (cur) { if (ancestors.has(cur)) return cur; cur = cur.parentElement; }
+  return null;
+}
+
 export function listSections(root: HTMLElement): SectionInfo[] {
+  // Tag personal-info first so it's discoverable as a section.
+  tagPersonalInfo(root);
+
   const { left, right } = findColumns(root);
   const out: SectionInfo[] = [];
 
   const collect = (container: HTMLElement | null, column: "left" | "right") => {
     if (!container) return;
-    // A "section" is either a <section>, or a heading-level block (h2/h3) with following content.
-    // We treat each <section> as a unit. If template lacks <section>, fall back to heading-led blocks.
-    const sections = Array.from(container.querySelectorAll<HTMLElement>(":scope > section, :scope > div > section, :scope > div > div > section"));
-    if (sections.length > 0) {
-      sections.forEach(sec => {
-        if (!sec.getAttribute(SECTION_ATTR)) sec.setAttribute(SECTION_ATTR, `s${++sectionCounter}`);
-        const heading = sec.querySelector<HTMLElement>("h1, h2, h3");
-        const title = (heading?.textContent || "Section").replace(/\s+/g, " ").trim().replace(/[+✕×]\s*$/g, "").slice(0, 60);
-        out.push({ id: sec.getAttribute(SECTION_ATTR)!, title, column, el: sec });
-      });
-      return;
+
+    // Gather candidate section elements: real <section>, headings, and personal-info block.
+    const candidates = new Set<HTMLElement>();
+    container.querySelectorAll<HTMLElement>("section").forEach(el => candidates.add(el));
+    container.querySelectorAll<HTMLElement>(`[${PERSONAL_INFO_ATTR}]`).forEach(el => candidates.add(el));
+    // Only fall back to headings when no real sections exist
+    if (Array.from(candidates).filter(c => c.tagName === "SECTION").length === 0) {
+      container.querySelectorAll<HTMLElement>("h2, h3").forEach(el => candidates.add(el));
     }
-    // Fallback: treat heading-led groups
-    const headings = Array.from(container.querySelectorAll<HTMLElement>("h2, h3"));
-    headings.forEach(h => {
-      if (!h.getAttribute(SECTION_ATTR)) h.setAttribute(SECTION_ATTR, `h${++sectionCounter}`);
-      out.push({
-        id: h.getAttribute(SECTION_ATTR)!,
-        title: (h.textContent || "Section").replace(/\s+/g, " ").trim().replace(/[+✕×]\s*$/g, "").slice(0, 60),
-        column,
-        el: h,
-      });
+
+    // Avoid nesting: if a candidate is inside another candidate, drop the inner one
+    // (except for personal-info which should win over its wrapping section).
+    const list = Array.from(candidates);
+    const filtered = list.filter(el => {
+      if (el.hasAttribute(PERSONAL_INFO_ATTR)) return true;
+      return !list.some(other => other !== el && other !== el && other.contains(el) && !other.hasAttribute(PERSONAL_INFO_ATTR) === false ? false : (other !== el && other.contains(el) && !el.hasAttribute(PERSONAL_INFO_ATTR)));
+    });
+
+    // Document order
+    filtered.sort((a, b) => {
+      const pos = a.compareDocumentPosition(b);
+      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+      return 0;
+    });
+
+    filtered.forEach(el => {
+      if (!el.getAttribute(SECTION_ATTR)) el.setAttribute(SECTION_ATTR, `s${++sectionCounter}`);
+      let title: string;
+      if (el.hasAttribute(PERSONAL_INFO_ATTR)) {
+        title = "Personal Information";
+      } else {
+        const heading = el.querySelector<HTMLElement>("h1, h2, h3") || (/h[1-6]/i.test(el.tagName) ? el : null);
+        title = (heading?.textContent || "Section").replace(/\s+/g, " ").trim().replace(/[+✕×]\s*$/g, "").slice(0, 60);
+      }
+      out.push({ id: el.getAttribute(SECTION_ATTR)!, title, column, el });
     });
   };
 
