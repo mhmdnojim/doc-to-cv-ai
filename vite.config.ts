@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === "production" ? "/doc-to-cv-ai/" : "/",
+  base: process.env.GITHUB_PAGES === "true" ? "/doc-to-cv-ai/" : "/",
   server: {
     host: "::",
     port: 8080,
