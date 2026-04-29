@@ -16,7 +16,7 @@ interface ExistingTemplate { id: string; name: string; html: string; }
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onCreated: () => void;
+  onCreated: (templateId?: string) => void;
   /** When provided, the dialog edits this template instead of creating a new one. */
   editing?: ExistingTemplate | null;
 }
@@ -183,14 +183,15 @@ export const TemplateUploadDialog = ({ open, onOpenChange, onCreated, editing }:
         const { error } = await supabase.from("user_templates").update(update).eq("id", editing.id);
         if (error) throw error;
         toast.success("Template updated");
+        onCreated(editing.id);
       } else {
-        const { error } = await supabase.from("user_templates").insert({
+        const { data: inserted, error } = await supabase.from("user_templates").insert({
           user_id: user.id, name, screenshot_url: path, html: generatedHtml,
-        });
+        }).select("id").single();
         if (error) throw error;
         toast.success("Template created");
+        onCreated(inserted?.id);
       }
-      onCreated();
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || "Failed to save template");
