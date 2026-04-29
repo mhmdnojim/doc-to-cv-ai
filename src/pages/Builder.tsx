@@ -563,7 +563,10 @@ const Builder = () => {
       <TemplateUploadDialog
         open={showTplDialog}
         onOpenChange={(v) => { setShowTplDialog(v); if (!v) setEditingTemplate(null); }}
-        onCreated={fetchUserTemplates}
+        onCreated={async (id) => {
+          await fetchUserTemplates();
+          if (id) handleTemplateChange(id);
+        }}
         editing={editingTemplate}
       />
 
