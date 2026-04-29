@@ -72,13 +72,36 @@ function inlineComputedStyles(source: HTMLElement, target: HTMLElement) {
  * fonts the user sees in the preview, including custom uploads.
  * ====================================================================== */
 
+/* Asset embedding & validation ----------------------------------------- */
+export interface ExportWarning {
+  kind: "font" | "image";
+  url: string;
+  reason: string;
+  fix: string;
+}
+
 const fontCache = new Map<string, string>();
 
-async function fetchAsDataUri(url: string): Promise<string | null> {
+async function fetchAsDataUri(
+  url: string,
+  warnings?: ExportWarning[],
+  kind: "font" | "image" = "font"
+): Promise<string | null> {
   if (fontCache.has(url)) return fontCache.get(url)!;
   try {
     const res = await fetch(url, { mode: "cors", credentials: "omit" });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      warnings?.push({
+        kind,
+        url,
+        reason: `HTTP ${res.status} when fetching the asset`,
+        fix:
+          kind === "font"
+            ? "Self-host the font on the same origin as the app, or use a CDN that returns CORS headers (e.g. Google Fonts)."
+            : "Re-upload the image to your project so it's served from the same origin.",
+      });
+      return null;
+    }
     const blob = await res.blob();
     const dataUri = await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
@@ -88,7 +111,16 @@ async function fetchAsDataUri(url: string): Promise<string | null> {
     });
     fontCache.set(url, dataUri);
     return dataUri;
-  } catch {
+  } catch (e) {
+    warnings?.push({
+      kind,
+      url,
+      reason: "Blocked by browser (likely missing CORS headers on the asset)",
+      fix:
+        kind === "font"
+          ? "Move the font to your own origin, or pick a font host that sends Access-Control-Allow-Origin: *."
+          : "Re-upload the image so it's served from the same origin (CORS-safe).",
+    });
     return null;
   }
 }
