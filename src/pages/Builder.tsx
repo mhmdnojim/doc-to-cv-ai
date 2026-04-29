@@ -623,8 +623,8 @@ const Builder = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Upload-template dialog */}
       <TemplateUploadDialog
