@@ -5,7 +5,7 @@ import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -36,6 +36,27 @@ const Builder = () => {
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
+
+  // ===== Multi-page support =====
+  // A4 dimensions in CSS pixels at 96dpi: 210mm = 793.7px, 297mm = 1122.5px
+  const PAGE_HEIGHT_PX = 1122.5;
+  const [manualPages, setManualPages] = useState(1);     // user-requested minimum page count
+  const [measuredPages, setMeasuredPages] = useState(1); // pages actually needed by content
+  const totalPages = Math.max(manualPages, measuredPages);
+
+  // Observe the editable content height and update auto-page count
+  useEffect(() => {
+    if (!editableRef.current) return;
+    const el = editableRef.current;
+    const update = () => {
+      const h = el.scrollHeight;
+      setMeasuredPages(Math.max(1, Math.ceil(h / PAGE_HEIGHT_PX)));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [template, userTemplateHtml]);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
