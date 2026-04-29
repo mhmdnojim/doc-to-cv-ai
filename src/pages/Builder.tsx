@@ -101,15 +101,12 @@ const Builder = () => {
     setData(next);
   };
   const addSkill = () => {
-    const skill = prompt("Enter a skill:");
-    if (skill) { localStorage.setItem(HAS_DATA_KEY, "1"); setData({ ...data, skills: [...data.skills, skill] }); }
+    localStorage.setItem(HAS_DATA_KEY, "1");
+    setData({ ...data, skills: [...data.skills, "New skill"] });
   };
   const addLanguage = () => {
-    const name = prompt("Language name:");
-    if (!name) return;
-    const level = prompt("Level (Native, Fluent, Intermediate...)") || "Fluent";
     localStorage.setItem(HAS_DATA_KEY, "1");
-    setData({ ...data, languages: [...data.languages, { id: Date.now().toString(), name, level }] });
+    setData({ ...data, languages: [...data.languages, { id: Date.now().toString(), name: "Language", level: "Fluent" }] });
   };
   const addProject = () => {
     const next = { ...data, projects: [...data.projects, {
