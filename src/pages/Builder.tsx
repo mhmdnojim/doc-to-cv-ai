@@ -37,6 +37,10 @@ const Builder = () => {
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [focusedPage, setFocusedPage] = useState(0);
+  // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
+  const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
