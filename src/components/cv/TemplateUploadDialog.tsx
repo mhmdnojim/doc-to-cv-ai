@@ -176,7 +176,9 @@ export const TemplateUploadDialog = ({ open, onOpenChange, onCreated, editing }:
     try {
       const path = file ? (file as any)._uploadedPath : null;
       if (isEdit && editing) {
-        const update: Record<string, any> = { html: generatedHtml, name, updated_at: new Date().toISOString() };
+        const update: { html: string; name: string; updated_at: string; screenshot_url?: string } = {
+          html: generatedHtml, name, updated_at: new Date().toISOString(),
+        };
         if (path) update.screenshot_url = path;
         const { error } = await supabase.from("user_templates").update(update).eq("id", editing.id);
         if (error) throw error;
