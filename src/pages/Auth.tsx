@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { getAppRedirectUrl } from "@/lib/app-url";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ArrowLeft, FileText, Loader2 } from "lucide-react";
@@ -28,7 +29,7 @@ export default function Auth() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin, data: { display_name: name } },
+          options: { emailRedirectTo: getAppRedirectUrl(), data: { display_name: name } },
         });
         if (error) throw error;
         toast.success("Account created — you're signed in!");
@@ -45,7 +46,7 @@ export default function Auth() {
   const handleGoogle = async () => {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/builder" });
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: getAppRedirectUrl("builder") });
       if (result.error) throw result.error;
     } catch (err: any) {
       toast.error(err.message || "Google sign-in failed");
