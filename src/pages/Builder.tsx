@@ -359,15 +359,33 @@ const Builder = () => {
     setSearchParams({ template: t });
   };
 
-  const handleExport = async () => {
-    // Save to account first (if signed in)
+  const buildExportHtml = (): string => {
+    if (!editableRef.current) return "";
+    const clone = editableRef.current.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+    const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
+      .map(n => n.outerHTML).join("\n");
+    const fontFamily = editableRef.current.style.fontFamily || "";
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${data.fullName || "CV"}</title>${styles}<style>body{margin:0;padding:24px;background:#fff;font-family:${fontFamily || "Inter, system-ui, sans-serif"};}</style></head><body>${clone.innerHTML}</body></html>`;
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
+  const saveBeforeExport = async () => {
     if (user) {
       toast.loading("Saving CV to your account…", { id: "export-save" });
       await saveCv(true);
-      toast.success("Saved — opening print dialog", { id: "export-save" });
-    } else {
-      toast.success(`Opening print dialog… ${totalPages} page${totalPages > 1 ? "s" : ""}`);
+      toast.success("Saved", { id: "export-save" });
     }
+  };
+
+  const handleExportPdf = async () => {
+    await saveBeforeExport();
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
@@ -384,6 +402,22 @@ const Builder = () => {
       }
       window.print();
     }, 250);
+  };
+
+  const handleExportHtml = async () => {
+    await saveBeforeExport();
+    const html = buildExportHtml();
+    downloadBlob(new Blob([html], { type: "text/html" }), `${data.fullName || "cv"}.html`);
+    toast.success("HTML downloaded");
+  };
+
+  const handleExportDocx = async () => {
+    await saveBeforeExport();
+    const html = buildExportHtml();
+    // Word-compatible HTML container — opens cleanly in MS Word & Google Docs
+    const wordDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/^<!doctype html>/i, "").replace(/<\/?html[^>]*>/gi, "")}</html>`;
+    downloadBlob(new Blob(["\ufeff", wordDoc], { type: "application/msword" }), `${data.fullName || "cv"}.doc`);
+    toast.success("Document downloaded");
   };
 
   // Update array sections directly
