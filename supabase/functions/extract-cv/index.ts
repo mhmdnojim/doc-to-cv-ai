@@ -86,9 +86,11 @@ const SCHEMA = {
         required: ["id", "name", "description", "link"],
         additionalProperties: false
       }
-    }
+    },
+    language: { type: "string", description: "ISO 639-1 code of the document's primary language, e.g. en, ar, zh, kk, bg, tk, id, ru, fa, ur, he." },
+    direction: { type: "string", enum: ["ltr", "rtl"], description: "Text direction inferred from the document's primary language." }
   },
-  required: ["fullName", "jobTitle", "email", "phone", "location", "website", "summary", "experience", "education", "skills", "languages", "projects"],
+  required: ["fullName", "jobTitle", "email", "phone", "location", "website", "summary", "experience", "education", "skills", "languages", "projects", "language", "direction"],
   additionalProperties: false
 };
 
