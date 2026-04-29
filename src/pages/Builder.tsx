@@ -1002,7 +1002,7 @@ const Builder = () => {
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
                       onFocus={() => setFocusedPage(0)}
                     >
-                      <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
+                      <CVPreview key={`${template}-${useSampleData ? "sample" : "data"}-${dataVersion}`} data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
                     </div>
                   </div>
                 </div>
