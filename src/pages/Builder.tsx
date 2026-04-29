@@ -743,7 +743,7 @@ const Builder = () => {
           <div className="space-y-4">
             {/* Import section */}
             {showUpload && (
-              <div className="rounded-xl border border-border bg-card p-4 relative">
+              <div id="ai-import-panel" className="rounded-xl border border-border bg-card p-4 relative">
                 <button
                   onClick={() => setShowUpload(false)}
                   className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
