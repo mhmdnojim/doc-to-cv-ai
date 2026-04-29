@@ -152,19 +152,20 @@ export default function PagesChecker() {
 
     // 2. Workflow file present
     let workflowOk = false;
+    const workflowFile = ".github/workflows/deploy.yml";
     if (repoPublic) {
       try {
         const r = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/contents/.github/workflows/static.yml`
+          `https://api.github.com/repos/${owner}/${repo}/contents/${workflowFile}`
         );
         if (r.ok) {
           workflowOk = true;
-          update("workflow", { status: "ok", detail: ".github/workflows/static.yml found" });
+          update("workflow", { status: "ok", detail: `${workflowFile} found` });
         } else {
           update("workflow", {
             status: "fail",
-            detail: "Workflow file .github/workflows/static.yml is missing.",
-            fix: <>Push the static.yml workflow described in <code>DEPLOY_GITHUB_PAGES.md</code>.</>,
+            detail: `Workflow file ${workflowFile} is missing.`,
+            fix: <>Push the deploy workflow from this project, then re-run the checker.</>,
           });
         }
       } catch {
@@ -179,7 +180,7 @@ export default function PagesChecker() {
     if (workflowOk) {
       try {
         const r = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/static.yml/runs?per_page=1`
+          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs?per_page=1`
         );
         if (r.ok) {
           const data = await r.json();
