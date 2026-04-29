@@ -208,6 +208,11 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
               key={item.key}
               onClick={() => {
                 if (item.key === "magic") {
+                  if (!user) {
+                    toast.info("Please sign in to use Magic Write");
+                    window.location.assign("/auth");
+                    return;
+                  }
                   setMagicOpen(true);
                   return;
                 }
