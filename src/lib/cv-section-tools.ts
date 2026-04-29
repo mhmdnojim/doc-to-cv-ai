@@ -578,13 +578,20 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
 
-      // Hover frame: "+" above (insert before / start) and "+" below (insert after / end)
+      // Hover frame: "+" above/below clones THIS section (with at least one
+      // of its subsections) and inserts it directly. The user can then
+      // freely edit or delete entries inside the new copy.
+      const cloneAndInsert = (position: "before" | "after") => {
+        const clone = cloneSectionForInsert(sec.el);
+        if (position === "before") sec.el.parentElement?.insertBefore(clone, sec.el);
+        else sec.el.parentElement?.insertBefore(clone, sec.el.nextSibling);
+        opts.onReorder?.();
+        setTimeout(() => injectSectionTools(root, opts), 30);
+      };
       attachHoverFrame(sec.el, {
         label: "section",
-        onInsertAbove: () =>
-          opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id }),
-        onInsertBelow: () =>
-          opts.onInsert(idx === inCol.length - 1 ? { mode: "end", column: col } : { mode: "after", sectionId: sec.id }),
+        onInsertAbove: () => cloneAndInsert("before"),
+        onInsertBelow: () => cloneAndInsert("after"),
       });
 
       // Inject "Add subsection here" gaps for repeating items inside this section.
