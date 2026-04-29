@@ -38,7 +38,14 @@ const Builder = () => {
 
   const handleExport = () => {
     toast.success("Opening print dialog… save as PDF");
-    setTimeout(() => window.print(), 200);
+    // Sync editable DOM into print area so manual text edits are preserved
+    setTimeout(() => {
+      const printArea = document.getElementById("cv-print-area");
+      if (printArea && editableRef.current) {
+        printArea.innerHTML = editableRef.current.innerHTML;
+      }
+      window.print();
+    }, 200);
   };
 
   // Update array sections directly
