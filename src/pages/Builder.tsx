@@ -1052,6 +1052,11 @@ const Builder = () => {
                           title={hiddenPages[pageIdx] ? "Show page" : "Hide page"}
                         >{hiddenPages[pageIdx] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
                         <button
+                          onClick={() => setLockedPages(p => ({ ...p, [pageIdx]: !p[pageIdx] }))}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title={lockedPages[pageIdx] ? "Unlock page" : "Lock page"}
+                        >{lockedPages[pageIdx] ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}</button>
+                        <button
                           onClick={() => {
                             const html = blankPageHtml[pageIdx] || "";
                             addBlankPage();
