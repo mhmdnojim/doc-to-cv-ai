@@ -177,7 +177,7 @@ const Builder = () => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
         const clone = editableRef.current.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("[data-add-btn]").forEach(el => el.remove());
+        clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
         printArea.innerHTML = clone.innerHTML;
       }
       window.print();
