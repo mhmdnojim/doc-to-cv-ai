@@ -383,6 +383,13 @@ const Builder = () => {
               <Button size="sm" variant="outline" onClick={addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
               <Button size="sm" variant="outline" onClick={addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
               <Button size="sm" variant="outline" onClick={addProject}><Plus className="w-3 h-3 mr-1" />Project</Button>
+              <span className="mx-1 h-5 w-px bg-border" />
+              <Button size="sm" variant="outline" onClick={() => addCustomSection("left")}>
+                <Plus className="w-3 h-3 mr-1" />Section ← left
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => addCustomSection("right")}>
+                <Plus className="w-3 h-3 mr-1" />Section right →
+              </Button>
               <span className="ml-auto flex items-center gap-2 text-xs">
                 <button onClick={loadSample} className="text-primary hover:underline">Load sample</button>
                 <span className="text-muted-foreground">·</span>
