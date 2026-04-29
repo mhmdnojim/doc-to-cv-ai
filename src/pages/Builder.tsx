@@ -61,6 +61,12 @@ const Builder = () => {
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [lockedPages, setLockedPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
+  // Bumped whenever we replace `data` wholesale (import/load/sample toggle) so
+  // the contentEditable preview is force-remounted with the fresh content.
+  // Without this, the browser-managed contentEditable DOM keeps the stale tree
+  // and React's prop diff doesn't visibly update.
+  const [dataVersion, setDataVersion] = useState(0);
+  const bumpData = useCallback(() => setDataVersion(v => v + 1), []);
 
   // ===== Ctrl/Cmd + scroll zoom on the CV preview area =====
   // Holding Ctrl (or Cmd on macOS) and scrolling inside the CV area zooms
