@@ -387,7 +387,7 @@ const Builder = () => {
   const buildExportHtml = (): string => {
     if (!editableRef.current) return "";
     const clone = editableRef.current.cloneNode(true) as HTMLElement;
-    clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+    clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
     const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
       .map(n => n.outerHTML).join("\n");
     const fontFamily = editableRef.current.style.fontFamily || "";
@@ -415,7 +415,7 @@ const Builder = () => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
         const clone = editableRef.current.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+        clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
         printArea.innerHTML = clone.innerHTML;
         const extra = Math.max(0, manualPages - measuredPages);
         for (let i = 0; i < extra; i++) {
