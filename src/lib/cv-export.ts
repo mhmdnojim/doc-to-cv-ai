@@ -129,9 +129,12 @@ function isFontFaceRule(r: CSSRule): r is CSSFontFaceRule {
   return r.type === CSSRule.FONT_FACE_RULE;
 }
 
-async function inlineFontFaceRule(rule: CSSFontFaceRule, baseHref: string): Promise<string> {
+async function inlineFontFaceRule(
+  rule: CSSFontFaceRule,
+  baseHref: string,
+  warnings?: ExportWarning[]
+): Promise<string> {
   const cssText = rule.cssText;
-  // Replace each url(...) with a data: URI when fetchable
   const urlRegex = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
   const matches = Array.from(cssText.matchAll(urlRegex));
   let result = cssText;
@@ -144,23 +147,20 @@ async function inlineFontFaceRule(rule: CSSFontFaceRule, baseHref: string): Prom
     } catch {
       continue;
     }
-    const dataUri = await fetchAsDataUri(abs);
-    if (dataUri) {
-      result = result.replace(m[0], `url(${dataUri})`);
-    }
+    const dataUri = await fetchAsDataUri(abs, warnings, "font");
+    if (dataUri) result = result.replace(m[0], `url(${dataUri})`);
   }
   return result;
 }
 
 /** Collect every @font-face rule from the document with embedded sources. */
-async function collectEmbeddedFontCss(): Promise<string> {
+async function collectEmbeddedFontCss(warnings?: ExportWarning[]): Promise<string> {
   const out: string[] = [];
   for (const sheet of Array.from(document.styleSheets)) {
     let rules: CSSRuleList | null = null;
     try {
       rules = sheet.cssRules;
     } catch {
-      // cross-origin sheet — try to refetch and parse
       const href = (sheet as CSSStyleSheet).href;
       if (!href) continue;
       try {
@@ -178,7 +178,7 @@ async function collectEmbeddedFontCss(): Promise<string> {
             if (raw.startsWith("data:")) continue;
             try {
               const abs = new URL(raw, href).href;
-              const data = await fetchAsDataUri(abs);
+              const data = await fetchAsDataUri(abs, warnings, "font");
               if (data) inlined = inlined.replace(m[0], `url(${data})`);
             } catch { /* noop */ }
           }
@@ -191,12 +191,42 @@ async function collectEmbeddedFontCss(): Promise<string> {
     for (const rule of Array.from(rules)) {
       if (isFontFaceRule(rule)) {
         const baseHref = (sheet as CSSStyleSheet).href || window.location.href;
-        out.push(await inlineFontFaceRule(rule, baseHref));
+        out.push(await inlineFontFaceRule(rule, baseHref, warnings));
       }
     }
   }
   return out.join("\n");
 }
+
+/** Probe every <img> in the source for cross-origin / fetch failures. */
+async function validateImages(source: HTMLElement, warnings: ExportWarning[]) {
+  const imgs = Array.from(source.querySelectorAll("img")) as HTMLImageElement[];
+  await Promise.all(
+    imgs.map(async (img) => {
+      const src = img.currentSrc || img.src;
+      if (!src || src.startsWith("data:") || src.startsWith("blob:")) return;
+      try {
+        const res = await fetch(src, { mode: "cors", credentials: "omit" });
+        if (!res.ok) {
+          warnings.push({
+            kind: "image",
+            url: src,
+            reason: `HTTP ${res.status} when fetching the image`,
+            fix: "Re-upload the image so it's served from the same origin as your CV.",
+          });
+        }
+      } catch {
+        warnings.push({
+          kind: "image",
+          url: src,
+          reason: "Blocked by browser (cross-origin without CORS headers)",
+          fix: "Re-upload the image to your project, or host it on a CDN that returns Access-Control-Allow-Origin: *.",
+        });
+      }
+    })
+  );
+}
+
 
 /* =========================================================================
  * Standalone HTML
