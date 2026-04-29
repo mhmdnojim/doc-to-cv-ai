@@ -678,24 +678,63 @@ const Builder = () => {
                     className="w-full flex flex-col items-center"
                     onMouseDown={() => setFocusedPage(pageIdx)}
                   >
-                    <div className="flex items-center gap-2 mb-2 text-sm font-medium">
-                      <span className={isFocused ? "text-primary" : "text-muted-foreground"}>
-                        Page {pageNumber} <span className="text-muted-foreground">/ {totalPages}</span>
+                    <div className="w-full max-w-[210mm] flex items-center justify-between mb-2 px-1">
+                      <span className={`text-sm font-semibold ${isFocused ? "text-foreground" : "text-muted-foreground"}`}>
+                        Page {pageNumber}
+                        <span className="text-muted-foreground font-normal"> - Add page title</span>
                       </span>
-                      <button
-                        onClick={() => {
-                          setManualPages(p => Math.max(1, p - 1));
-                          setBlankPageHtml(prev => {
-                            const { [pageIdx]: _, ...rest } = prev;
-                            return rest;
-                          });
-                          if (focusedPage === pageIdx) setFocusedPage(0);
-                        }}
-                        className="text-destructive hover:underline text-xs"
-                        title="Remove this blank page"
-                      >
-                        remove
-                      </button>
+                      <div className="flex items-center gap-0.5 text-muted-foreground">
+                        <button
+                          onClick={() => {
+                            const el = pageRefs.current[pageIdx - 1];
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Previous page"
+                        ><ChevronUp className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => {
+                            const el = pageRefs.current[pageIdx + 1];
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                          disabled={pageIdx + 1 >= totalPages}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground disabled:opacity-30"
+                          title="Next page"
+                        ><ChevronDown className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => setHiddenPages(p => ({ ...p, [pageIdx]: !p[pageIdx] }))}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title={hiddenPages[pageIdx] ? "Show page" : "Hide page"}
+                        >{hiddenPages[pageIdx] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+                        <button
+                          onClick={() => {
+                            const html = blankPageHtml[pageIdx] || "";
+                            addBlankPage();
+                            setTimeout(() => {
+                              setBlankPageHtml(prev => ({ ...prev, [pageIdx + 1]: html }));
+                            }, 50);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Duplicate page"
+                        ><Copy className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => {
+                            setManualPages(p => Math.max(1, p - 1));
+                            setBlankPageHtml(prev => {
+                              const { [pageIdx]: _, ...rest } = prev;
+                              return rest;
+                            });
+                            if (focusedPage === pageIdx) setFocusedPage(0);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-destructive"
+                          title="Delete page"
+                        ><Trash2 className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => addBlankPage()}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Add a blank page after"
+                        ><FilePlus className="w-4 h-4" /></button>
+                      </div>
                     </div>
 
                     <div
