@@ -12,6 +12,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  injectSectionTools,
+  cleanupTools,
+  listSections,
+  insertAtLocation,
+  buildSectionElement,
+  type SectionLocation,
+  type SectionInfo,
+  type NewSectionTemplate,
+} from "@/lib/cv-section-tools";
+import { SectionPositionDialog } from "@/components/cv/SectionPositionDialog";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
