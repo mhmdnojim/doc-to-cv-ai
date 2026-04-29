@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
@@ -48,6 +49,7 @@ const Builder = () => {
   const [template, setTemplate] = useState<string>(initialTemplate);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [showTplDialog, setShowTplDialog] = useState(false);
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
@@ -683,8 +685,7 @@ const Builder = () => {
               size="sm"
               onClick={() => {
                 if (!user) {
-                  toast.info("Please sign in to import your CV with AI");
-                  window.location.assign("/auth");
+                  setShowLogin(true);
                   return;
                 }
                 setShowUpload(true);
