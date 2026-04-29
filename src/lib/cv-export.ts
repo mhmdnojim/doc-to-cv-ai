@@ -560,26 +560,36 @@ export async function exportToDocx(source: HTMLElement, filename: string) {
 
   try {
     const blocks: Array<Paragraph | Table> = [];
-    await walk(clone, blocks);
+    const numberingRefs = new Set<string>();
+    await walk(clone, blocks, numberingRefs);
     if (blocks.length === 0) blocks.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
 
-    const doc = new Document({
-      numbering: {
-        config: [
+    // Build one numbering config per used ref. Each ref defines a single
+    // level, but we vary indent/glyph by the level encoded in the ref name.
+    const bulletGlyphs = ["•", "◦", "▪", "‣", "·"];
+    const numberingConfig = Array.from(numberingRefs).map((ref) => {
+      const [kind, lvlStr] = ref.split("-");
+      const level = parseInt(lvlStr, 10) || 0;
+      const ordered = kind === "ord";
+      const indentLeft = 720 * (level + 1); // 0.5" per nest
+      return {
+        reference: ref,
+        levels: [
           {
-            reference: "ordered-list",
-            levels: [
-              {
-                level: 0,
-                format: "decimal" as any,
-                text: "%1.",
-                alignment: AlignmentType.LEFT,
-                style: { paragraph: { indent: { left: 720, hanging: 360 } } },
-              },
-            ],
+            level: 0, // we always store at level 0 of this ref; indent encodes nesting
+            format: ordered ? LevelFormat.DECIMAL : LevelFormat.BULLET,
+            text: ordered ? "%1." : bulletGlyphs[Math.min(level, bulletGlyphs.length - 1)],
+            alignment: AlignmentType.LEFT,
+            style: { paragraph: { indent: { left: indentLeft, hanging: 360 } } },
           },
         ],
-      },
+      };
+    });
+
+    const doc = new Document({
+      numbering: { config: numberingConfig.length > 0 ? numberingConfig : [
+        { reference: "noop", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 360 } } } }] }
+      ] },
       sections: [
         {
           properties: {
