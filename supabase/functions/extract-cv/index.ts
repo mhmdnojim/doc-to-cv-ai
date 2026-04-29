@@ -4,10 +4,13 @@ import { BlobReader, ZipReader, TextWriter } from "https://deno.land/x/zipjs@v2.
 
 // Extract plain text from a .docx buffer by unzipping and parsing word/document.xml.
 async function extractDocxText(bytes: Uint8Array): Promise<string> {
-  const entries = await unzip(bytes);
-  const docEntry = entries.find((e: any) => e.name === "word/document.xml");
-  if (!docEntry) throw new Error("word/document.xml not found in .docx");
-  const xml = new TextDecoder("utf-8").decode(docEntry.data);
+  const blob = new Blob([bytes]);
+  const reader = new ZipReader(new BlobReader(blob));
+  const entries = await reader.getEntries();
+  const docEntry = entries.find((e: any) => e.filename === "word/document.xml");
+  if (!docEntry || !docEntry.getData) throw new Error("word/document.xml not found in .docx");
+  const xml: string = await docEntry.getData(new TextWriter());
+  await reader.close();
   // Convert paragraph/line breaks to newlines, then strip remaining tags.
   const withBreaks = xml
     .replace(/<w:p[^>]*\/>/g, "\n")
