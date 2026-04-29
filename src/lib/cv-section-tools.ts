@@ -274,6 +274,10 @@ function makeDragHandle(): HTMLElement {
 export interface InjectOptions {
   onInsert: (where: SectionLocation) => void;
   onReorder?: () => void;
+  // Called AFTER any structural mutation performed by injected controls
+  // (add subsection, clone section above/below, drag-drop reorder).
+  // Use this to push a snapshot into your undo/redo history.
+  onMutate?: () => void;
 }
 
 /**
@@ -475,6 +479,7 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     if (position === "end") container.appendChild(template);
     else if (position === "before" && refNode) container.insertBefore(template, refNode);
     else if (position === "after" && refNode) container.insertBefore(template, refNode.nextSibling);
+    opts.onMutate?.();
     // Re-run injection so new item also gets gaps + handles
     setTimeout(() => {
       const root = sec.closest<HTMLElement>("[contenteditable]") || sec.ownerDocument!.body;
@@ -612,6 +617,7 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         if (before) sec.el.parentElement?.insertBefore(sourceEl, sec.el);
         else sec.el.parentElement?.insertBefore(sourceEl, sec.el.nextSibling);
         opts.onReorder?.();
+        opts.onMutate?.();
         // Re-inject after reorder
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
@@ -624,6 +630,7 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         if (position === "before") sec.el.parentElement?.insertBefore(clone, sec.el);
         else sec.el.parentElement?.insertBefore(clone, sec.el.nextSibling);
         opts.onReorder?.();
+        opts.onMutate?.();
         setTimeout(() => injectSectionTools(root, opts), 30);
       };
       attachHoverFrame(sec.el, {

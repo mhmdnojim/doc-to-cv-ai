@@ -6,7 +6,7 @@ import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType, Undo2, Redo2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -56,6 +56,53 @@ const Builder = () => {
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
+
+  // ===== Structural undo/redo =====
+  // The CV is contentEditable, so the browser's native undo handles text edits.
+  // But our custom JS-driven mutations (add/delete sections, add/delete subsections,
+  // clone above/below, drag-reorder) are NOT in the browser's undo stack — we
+  // maintain our own snapshot history of the editable HTML for those.
+  const historyRef = useRef<{ stack: string[]; index: number; suspend: boolean }>({
+    stack: [], index: -1, suspend: false,
+  });
+  const [historyTick, setHistoryTick] = useState(0); // re-render when stack changes
+  const snapshotHistory = useCallback(() => {
+    const root = editableRef.current;
+    if (!root || historyRef.current.suspend) return;
+    const html = root.innerHTML;
+    const h = historyRef.current;
+    if (h.stack[h.index] === html) return; // no change
+    // Drop any redo branch
+    h.stack = h.stack.slice(0, h.index + 1);
+    h.stack.push(html);
+    if (h.stack.length > 100) { h.stack.shift(); h.index = h.stack.length - 1; }
+    else h.index = h.stack.length - 1;
+    setHistoryTick(t => t + 1);
+  }, []);
+  const restoreSnapshot = useCallback((html: string) => {
+    const root = editableRef.current;
+    if (!root) return;
+    historyRef.current.suspend = true;
+    root.innerHTML = html;
+    setTimeout(() => { historyRef.current.suspend = false; }, 0);
+  }, []);
+  const undoStructural = useCallback(() => {
+    const h = historyRef.current;
+    if (h.index <= 0) return;
+    h.index -= 1;
+    restoreSnapshot(h.stack[h.index]);
+    setHistoryTick(t => t + 1);
+  }, [restoreSnapshot]);
+  const redoStructural = useCallback(() => {
+    const h = historyRef.current;
+    if (h.index >= h.stack.length - 1) return;
+    h.index += 1;
+    restoreSnapshot(h.stack[h.index]);
+    setHistoryTick(t => t + 1);
+  }, [restoreSnapshot]);
+  const canUndo = historyRef.current.index > 0;
+  const canRedo = historyRef.current.index < historyRef.current.stack.length - 1;
+  void historyTick; // tie re-render to canUndo/canRedo
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
@@ -312,9 +359,9 @@ const Builder = () => {
           if (!confirm(`Delete this section ("${(h.textContent || "").replace(/\s+/g, " ").trim()}")?`)) return;
           // Remove the closest <section>; otherwise remove the heading + following siblings until next heading
           const section = h.closest("section");
-          if (section) { section.remove(); return; }
+          if (section) { section.remove(); snapshotHistory(); return; }
           const parent = h.parentElement;
-          if (!parent) { h.remove(); return; }
+          if (!parent) { h.remove(); snapshotHistory(); return; }
           const toRemove: Element[] = [h];
           let sib = h.nextElementSibling;
           while (sib && !["H2", "H3"].includes(sib.tagName)) {
@@ -322,6 +369,7 @@ const Builder = () => {
             sib = sib.nextElementSibling;
           }
           toRemove.forEach(el => el.remove());
+          snapshotHistory();
         }));
       });
     }, 50);
@@ -352,16 +400,19 @@ const Builder = () => {
     const headingText = sec.querySelector("h2")?.textContent || "";
     if (headingText) setPendingFocusText(headingText);
     toast.success("Section added");
+    snapshotHistory();
     // Re-inject tools so the new section gets handles
     setTimeout(() => {
-      injectSectionTools(root, { onInsert: (w) => {
-        setPickerSpec({ type: "custom" });
-        setPickerSections(listSections(root));
-        // For inline gap clicks, insert a custom section directly without dialog
-        performInsert(w, { type: "custom" });
-      }});
+      injectSectionTools(root, {
+        onInsert: (w) => {
+          setPickerSpec({ type: "custom" });
+          setPickerSections(listSections(root));
+          performInsert(w, { type: "custom" });
+        },
+        onMutate: snapshotHistory,
+      });
     }, 80);
-  }, []);
+  }, [snapshotHistory]);
 
   // Backwards-compat: addCustomSection still exists for the legacy left/right buttons
   const addCustomSection = (side: "left" | "right") => {
@@ -378,10 +429,44 @@ const Builder = () => {
           // Inline "+ here" → insert a custom section at that exact spot
           performInsert(where, { type: "custom" });
         },
+        onMutate: snapshotHistory,
       });
     }, 120);
     return () => clearTimeout(t);
-  }, [data, template, performInsert]);
+  }, [data, template, performInsert, snapshotHistory]);
+
+  // Capture an initial history snapshot once the editable mounts / template changes,
+  // and listen for Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z or Ctrl+Y (redo) when
+  // focus is inside the editable CV. Pure text edits still go through the
+  // browser's native undo; structural changes use our snapshot stack.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const root = editableRef.current;
+      if (!root) return;
+      historyRef.current = { stack: [root.innerHTML], index: 0, suspend: false };
+      setHistoryTick(v => v + 1);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [template, userTemplateHtml]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const root = editableRef.current;
+      if (!root) return;
+      const target = e.target as Node | null;
+      if (!target || !root.contains(target)) return;
+      const meta = e.ctrlKey || e.metaKey;
+      if (!meta) return;
+      const key = e.key.toLowerCase();
+      if (key === "z" && !e.shiftKey) {
+        if (canUndo) { e.preventDefault(); undoStructural(); }
+      } else if ((key === "z" && e.shiftKey) || key === "y") {
+        if (canRedo) { e.preventDefault(); redoStructural(); }
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [canUndo, canRedo, undoStructural, redoStructural]);
 
 
 
@@ -795,9 +880,27 @@ const Builder = () => {
               </div>
             )}
 
-            <p className="text-xs text-muted-foreground text-center">
-              ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
-            </p>
+            <div className="flex items-center justify-center gap-3">
+              <p className="text-xs text-muted-foreground text-center">
+                ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
+              </p>
+              <div className="flex items-center gap-1 border-l border-border pl-3">
+                <button
+                  type="button"
+                  onClick={undoStructural}
+                  disabled={!canUndo}
+                  title="Undo (Ctrl+Z)"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-base"
+                ><Undo2 className="w-4 h-4" /></button>
+                <button
+                  type="button"
+                  onClick={redoStructural}
+                  disabled={!canRedo}
+                  title="Redo (Ctrl+Shift+Z)"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-base"
+                ><Redo2 className="w-4 h-4" /></button>
+              </div>
+            </div>
 
             {/* Editable CV preview — main CV card + extra blank pages as separate cards */}
             <div className="flex flex-col items-center gap-8">
