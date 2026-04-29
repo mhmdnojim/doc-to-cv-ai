@@ -37,14 +37,17 @@ const Builder = () => {
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
 
+  const activeUserTemplate = userTemplates.find(t => t.id === template);
+  const userTemplateHtml = activeUserTemplate?.html;
+
   // ===== Multi-page support =====
-  // A4 dimensions in CSS pixels at 96dpi: 210mm = 793.7px, 297mm = 1122.5px
+  // A4 at 96dpi: 297mm = 1122.5px
   const PAGE_HEIGHT_PX = 1122.5;
-  const [manualPages, setManualPages] = useState(1);     // user-requested minimum page count
-  const [measuredPages, setMeasuredPages] = useState(1); // pages actually needed by content
+  const [manualPages, setManualPages] = useState(1);     // user-requested minimum
+  const [measuredPages, setMeasuredPages] = useState(1); // measured from content
   const totalPages = Math.max(manualPages, measuredPages);
 
-  // Observe the editable content height and update auto-page count
+  // Observe content height to update auto-page count
   useEffect(() => {
     if (!editableRef.current) return;
     const el = editableRef.current;
@@ -58,8 +61,6 @@ const Builder = () => {
     return () => ro.disconnect();
   }, [template, userTemplateHtml]);
 
-  const activeUserTemplate = userTemplates.find(t => t.id === template);
-  const userTemplateHtml = activeUserTemplate?.html;
 
   const fetchUserTemplates = useCallback(async () => {
     // Load all visible (public + own + admin) templates
