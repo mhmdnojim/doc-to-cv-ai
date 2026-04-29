@@ -412,13 +412,22 @@ const Builder = () => {
                               {active && <Check className="w-3 h-3 text-primary shrink-0" />}
                             </div>
                           </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
-                            className="absolute top-1 right-1 p-1 rounded-full bg-card/90 text-destructive opacity-0 group-hover:opacity-100 transition-base"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-base">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingTemplate(t); setShowTplDialog(true); }}
+                              className="p-1 rounded-full bg-card/90 text-primary hover:bg-card"
+                              title="Replace screenshot"
+                            >
+                              <ImagePlus className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
+                              className="p-1 rounded-full bg-card/90 text-destructive hover:bg-card"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
