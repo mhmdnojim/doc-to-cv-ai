@@ -69,11 +69,12 @@ const Builder = () => {
 
   const handleExport = () => {
     toast.success("Opening print dialog… save as PDF");
-    // Sync editable DOM into print area so manual text edits are preserved
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
-        printArea.innerHTML = editableRef.current.innerHTML;
+        const clone = editableRef.current.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("[data-add-btn]").forEach(el => el.remove());
+        printArea.innerHTML = clone.innerHTML;
       }
       window.print();
     }, 200);
