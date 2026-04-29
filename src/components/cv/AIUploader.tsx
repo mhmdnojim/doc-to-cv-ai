@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CVData, EMPTY_CV } from "@/lib/cv-types";
 import { useAuth } from "@/hooks/useAuth";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 
 interface Props {
   onExtracted: (data: CVData) => void;
