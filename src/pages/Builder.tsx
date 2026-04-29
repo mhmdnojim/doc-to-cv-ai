@@ -381,7 +381,7 @@ const Builder = () => {
                 <div className="flex items-center justify-between mb-2 px-1">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">My templates</h4>
                   <button
-                    onClick={() => user ? setShowTplDialog(true) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
+                    onClick={() => user ? (setEditingTemplate(null), setShowTplDialog(true)) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
                     className="text-primary hover:text-primary/80"
                     title="Upload screenshot to create a template"
                   >
