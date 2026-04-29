@@ -43,7 +43,17 @@ const Builder = () => {
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
 
-  const addBlankPage = useCallback((afterIdx?: number) => {
+  const activeUserTemplate = userTemplates.find(t => t.id === template);
+  const userTemplateHtml = activeUserTemplate?.html;
+
+  // ===== Multi-page support =====
+  // A4 at 96dpi: 297mm = 1122.5px
+  const PAGE_HEIGHT_PX = 1122.5;
+  const [manualPages, setManualPages] = useState(1);     // user-requested minimum
+  const [measuredPages, setMeasuredPages] = useState(1); // measured from content
+  const totalPages = Math.max(manualPages, measuredPages);
+
+  const addBlankPage = useCallback(() => {
     setManualPages(p => {
       const next = p + 1;
       const newIdx = Math.max(measuredPages, next) - 1;
@@ -61,15 +71,6 @@ const Builder = () => {
     });
   }, [measuredPages]);
 
-  const activeUserTemplate = userTemplates.find(t => t.id === template);
-  const userTemplateHtml = activeUserTemplate?.html;
-
-  // ===== Multi-page support =====
-  // A4 at 96dpi: 297mm = 1122.5px
-  const PAGE_HEIGHT_PX = 1122.5;
-  const [manualPages, setManualPages] = useState(1);     // user-requested minimum
-  const [measuredPages, setMeasuredPages] = useState(1); // measured from content
-  const totalPages = Math.max(manualPages, measuredPages);
 
   // Observe content height to update auto-page count
   useEffect(() => {
