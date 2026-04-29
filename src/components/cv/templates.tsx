@@ -1781,3 +1781,234 @@ export const LeclercTemplate = ({ data }: Props) => (
     </div>
   </div>
 );
+
+/* ============================ BATCH 5 ============================ */
+
+export const MendezTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-white text-black font-sans flex">
+    <aside className="w-[34%] bg-black text-white p-7 flex flex-col">
+      <Avatar src={data.photo} className="w-36 h-36 rounded-full object-cover mx-auto border-4 border-white mb-8" />
+      <div className="space-y-7 text-sm">
+        <div>
+          <h3 className="text-base font-semibold flex items-center gap-2 mb-3">📞 Contacto</h3>
+          <div className="space-y-1 text-white/90">
+            {data.phone && <p>{data.phone}</p>}
+            {data.email && <p className="break-all">{data.email}</p>}
+            {data.website && <p className="break-all">{data.website}</p>}
+            {data.location && <p className="pt-1 leading-snug">{data.location}</p>}
+          </div>
+        </div>
+        {data.education.length > 0 && (
+          <div>
+            <h3 className="text-base font-semibold flex items-center gap-2 mb-3">🎓 Formación</h3>
+            {data.education.map(e => (
+              <div key={e.id} className="mb-3">
+                <p className="font-bold">{e.school}</p>
+                <p className="italic text-white/80 text-xs">{e.degree} {e.field}</p>
+                <p className="text-white/70 text-xs">{e.startDate} – {e.endDate}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {data.skills.length > 0 && (
+          <div>
+            <h3 className="text-base font-semibold flex items-center gap-2 mb-3">⚙ Habilidades</h3>
+            <ul className="space-y-1 text-white/90">{data.skills.map((s, i) => <li key={i}>• {s}</li>)}</ul>
+          </div>
+        )}
+      </div>
+    </aside>
+    <main className="flex-1 p-9">
+      <header className="mb-6">
+        <h1 className="text-5xl font-extrabold uppercase leading-none tracking-tight">{(data.fullName || "Your Name").split(" ").map((w, i, arr) => <span key={i}>{w}{i < arr.length - 1 && <br />}</span>)}</h1>
+        {data.jobTitle && <div className="mt-3 inline-block bg-black text-white px-4 py-1.5 text-xs tracking-[0.25em] uppercase">{data.jobTitle}</div>}
+      </header>
+      <div className="border-l-2 border-black/20 pl-5 space-y-6 text-sm">
+        {data.summary && (
+          <section><h2 className="text-lg font-bold mb-1.5 flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-black text-white inline-flex items-center justify-center text-[10px]">i</span> Perfil Personal</h2><p className="text-neutral-700 leading-relaxed">{data.summary}</p></section>
+        )}
+        {data.experience.length > 0 && (
+          <section><h2 className="text-lg font-bold mb-2 flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-black text-white inline-flex items-center justify-center text-[10px]">▣</span> Experiencia Laboral</h2>
+            {data.experience.map(e => (
+              <div key={e.id} className="mb-4">
+                <p className="uppercase tracking-wider text-sm">{e.position}</p>
+                <p className="italic font-semibold">• {e.company} <span className="font-normal">({e.startDate} – {e.endDate})</span></p>
+                <p className="text-neutral-700 mt-1 leading-relaxed">{e.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {data.languages.length > 0 && (
+          <section><h2 className="text-lg font-bold mb-2 flex items-center gap-2"><span className="w-5 h-5 rounded-full bg-black text-white inline-flex items-center justify-center text-[10px]">🌐</span> Idiomas</h2>
+            <ul className="space-y-0.5 pl-4">{data.languages.map(l => <li key={l.id}>• {l.name} {l.level}</li>)}</ul>
+          </section>
+        )}
+      </div>
+    </main>
+  </div>
+);
+
+export const NavarroProTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans p-4">
+    <div className="grid grid-cols-12 gap-5 h-full">
+      <aside className="col-span-5 bg-[#243a55] text-white rounded-2xl p-7 relative overflow-hidden">
+        <div className="bg-white/10 rounded-2xl p-2 mb-4">
+          <Avatar src={data.photo} className="w-full aspect-square rounded-xl object-cover" />
+        </div>
+        <h1 className="text-4xl font-light leading-tight">{(data.fullName || "Your Name").split(" ").map((w, i) => <div key={i} className={i === 0 ? "" : "font-bold"}>{w}</div>)}</h1>
+        {data.jobTitle && <div className="mt-3 inline-block bg-white text-[#243a55] px-3 py-1 rounded-full text-[10px] tracking-[0.25em] uppercase font-semibold">{data.jobTitle}</div>}
+        <div className="mt-7 space-y-5 text-sm">
+          <div>
+            <h3 className="uppercase tracking-widest font-bold text-base mb-2">Contacto</h3>
+            <div className="space-y-1.5 text-white/90 text-xs">
+              {data.phone && <p>📞 {data.phone}</p>}
+              {data.email && <p className="break-all">✉ {data.email}</p>}
+              {data.website && <p className="break-all">🌐 {data.website}</p>}
+              {data.location && <p>📍 {data.location}</p>}
+            </div>
+          </div>
+          {data.languages.length > 0 && (
+            <div>
+              <h3 className="uppercase tracking-widest font-bold text-base mb-2">Idiomas</h3>
+              {data.languages.map(l => <p key={l.id} className="text-xs"><b className="uppercase">{l.name}</b> · {l.level}</p>)}
+            </div>
+          )}
+        </div>
+      </aside>
+      <main className="col-span-7 space-y-3 text-sm">
+        {data.summary && (
+          <section>
+            <div className="bg-[#243a55] text-white rounded-r-full px-4 py-1.5 inline-block min-w-[60%]"><h2 className="font-bold tracking-wider uppercase text-sm">Mi Perfil</h2></div>
+            <p className="text-slate-700 leading-relaxed mt-2 px-1">{data.summary}</p>
+          </section>
+        )}
+        {data.experience.length > 0 && (
+          <section>
+            <div className="bg-[#243a55] text-white rounded-r-full px-4 py-1.5 inline-block min-w-[60%]"><h2 className="font-bold tracking-wider uppercase text-sm">Experiencia</h2></div>
+            <div className="mt-2 px-1">
+              {data.experience.map(e => (
+                <div key={e.id} className="mb-3">
+                  <p className="font-bold uppercase text-xs tracking-wider">{e.position}</p>
+                  <p className="italic font-semibold">{e.company} ({e.startDate} – {e.endDate})</p>
+                  <p className="text-slate-700 mt-0.5 leading-relaxed">{e.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section>
+            <div className="bg-[#243a55] text-white rounded-r-full px-4 py-1.5 inline-block min-w-[60%]"><h2 className="font-bold tracking-wider uppercase text-sm">Formación</h2></div>
+            <div className="mt-2 px-1">
+              {data.education.map(e => (
+                <div key={e.id} className="mb-2">
+                  <p className="font-bold uppercase text-xs">{e.school}</p>
+                  <p className="text-xs">({e.startDate} – {e.endDate})</p>
+                  <p className="text-slate-700 text-xs">{e.degree} {e.field}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {data.skills.length > 0 && (
+          <section>
+            <div className="bg-[#243a55] text-white rounded-r-full px-4 py-1.5 inline-block min-w-[60%]"><h2 className="font-bold tracking-wider uppercase text-sm">Herramientas</h2></div>
+            <div className="mt-2 px-1 space-y-1">
+              {data.skills.slice(0, 6).map((s, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="uppercase text-xs font-semibold w-32 shrink-0">{s}</span>
+                  <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#243a55]" style={{ width: `${70 + ((i * 17) % 25)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  </div>
+);
+
+export const GrassoTemplate = ({ data }: Props) => (
+  <div className="min-h-[297mm] w-[210mm] bg-gradient-to-br from-[#fdf3f0] via-white to-[#fce5e0] text-stone-900 font-serif">
+    <div className="grid grid-cols-12 border-b border-stone-300">
+      <div className="col-span-4 bg-stone-100">
+        <Avatar src={data.photo} className="w-full h-64 object-cover" />
+      </div>
+      <div className="col-span-8 p-8 flex flex-col justify-center">
+        <p className="italic text-3xl text-stone-700">Ciao, sono</p>
+        <h1 className="text-5xl font-light italic leading-tight mt-1">{data.fullName || "Your Name"}</h1>
+        <div className="mt-5 pt-4 border-t border-stone-300 font-sans">
+          <p className="text-base">{data.jobTitle}</p>
+          {data.summary && <p className="text-xs uppercase tracking-wider font-bold mt-1">{data.summary.slice(0, 80)}</p>}
+        </div>
+      </div>
+    </div>
+    <div className="grid grid-cols-12 min-h-[calc(297mm-16rem)]">
+      <aside className="col-span-4 p-7 font-sans text-sm space-y-6">
+        <div className="inline-block px-4 py-1.5 border border-stone-400 rounded-full text-xs tracking-wider">EUROPEAN CV</div>
+        <div>
+          <h3 className="font-serif italic text-2xl mb-2">Dati personali</h3>
+          <div className="space-y-2 text-xs">
+            {data.location && (<div><p className="font-bold uppercase">Indirizzo</p><p>{data.location}</p></div>)}
+            {data.phone && (<div><p className="font-bold uppercase">Cell</p><p>{data.phone}</p></div>)}
+            {data.email && (<div><p className="font-bold uppercase">Mail</p><p className="break-all">{data.email}</p></div>)}
+            {data.website && (<div><p className="font-bold uppercase">Web</p><p className="break-all">{data.website}</p></div>)}
+          </div>
+        </div>
+        {data.languages.length > 0 && (
+          <div>
+            <p className="font-bold uppercase text-xs mb-1">Lingue</p>
+            {data.languages.map(l => <p key={l.id} className="text-xs">{l.name} — {l.level}</p>)}
+          </div>
+        )}
+        <div className="pt-4">
+          <p className="font-bold uppercase text-xs">A lavoro</p>
+          <p className="font-bold uppercase text-xs">dico sempre:</p>
+          <p className="font-serif italic text-xl mt-3 leading-snug">"Il talento vince le partite, ma il lavoro di squadra vince i campionati."</p>
+        </div>
+      </aside>
+      <main className="col-span-8 border-l border-stone-300 p-7 space-y-5">
+        {data.summary && (
+          <section className="font-sans text-sm">
+            <p className="text-stone-700 leading-relaxed">{data.summary}</p>
+          </section>
+        )}
+        {data.experience.length > 0 && (
+          <section className="border-t border-stone-300 pt-4">
+            <h2 className="font-serif italic text-2xl mb-2">Esperienze professionali:</h2>
+            <div className="font-sans text-sm space-y-3">
+              {data.experience.map(e => (
+                <div key={e.id}>
+                  <p className="font-bold uppercase text-xs">{e.position}</p>
+                  <p className="text-xs text-stone-600">{e.company}{e.location && ` (${e.location})`} · {e.startDate} – {e.endDate}</p>
+                  <p className="text-stone-700 mt-0.5 text-xs leading-relaxed">{e.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+        {data.skills.length > 0 && (
+          <section className="border-t border-stone-300 pt-4">
+            <h2 className="font-serif italic text-2xl mb-2">Competenze Principali</h2>
+            <ul className="font-sans text-sm list-disc pl-5 space-y-0.5">{data.skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </section>
+        )}
+        {data.education.length > 0 && (
+          <section className="border-t border-stone-300 pt-4">
+            <h2 className="font-serif italic text-2xl mb-2">Formazione</h2>
+            <div className="font-sans text-sm space-y-2">
+              {data.education.map(e => (
+                <div key={e.id}>
+                  <p className="font-bold uppercase text-xs">{e.degree} {e.field}</p>
+                  <p className="text-xs text-stone-600">{e.school} · {e.startDate} – {e.endDate}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+    </div>
+  </div>
+);
