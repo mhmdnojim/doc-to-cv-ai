@@ -6,7 +6,7 @@ import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -41,6 +41,7 @@ const Builder = () => {
   const [focusedPage, setFocusedPage] = useState(0);
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
+  const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
@@ -51,6 +52,25 @@ const Builder = () => {
   const [manualPages, setManualPages] = useState(1);     // user-requested minimum
   const [measuredPages, setMeasuredPages] = useState(1); // measured from content
   const totalPages = Math.max(manualPages, measuredPages);
+
+  const addBlankPage = useCallback(() => {
+    setManualPages(p => {
+      const next = p + 1;
+      const newIdx = Math.max(measuredPages, next) - 1;
+      toast.success(`Page ${next} added`);
+      setTimeout(() => {
+        const el = pageRefs.current[newIdx];
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setFocusedPage(newIdx);
+          const editable = el.querySelector<HTMLElement>("[contenteditable='true']");
+          editable?.focus();
+        }
+      }, 120);
+      return next;
+    });
+  }, [measuredPages]);
+
 
   // Observe content height to update auto-page count
   useEffect(() => {
@@ -393,22 +413,7 @@ const Builder = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                const next = manualPages + 1;
-                setManualPages(next);
-                const newIdx = Math.max(measuredPages, next) - 1;
-                toast.success(`Page ${next} added`);
-                // Scroll to & focus the new page after render
-                setTimeout(() => {
-                  const el = pageRefs.current[newIdx];
-                  if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    setFocusedPage(newIdx);
-                    const editable = el.querySelector<HTMLElement>("[contenteditable='true']");
-                    editable?.focus();
-                  }
-                }, 120);
-              }}
+              onClick={() => addBlankPage()}
               title="Add a blank page"
             >
               <FilePlus className="w-4 h-4 mr-2" /> Add page
@@ -600,14 +605,39 @@ const Builder = () => {
                 className="w-full flex flex-col items-center"
                 onMouseDown={() => setFocusedPage(0)}
               >
-                <div className="flex items-center gap-2 mb-2 text-sm font-medium">
-                  <span className={focusedPage === 0 ? "text-primary" : "text-muted-foreground"}>
-                    Page {measuredPages > 1 ? `1–${measuredPages}` : "1"} <span className="text-muted-foreground">/ {totalPages}</span>
+                <div className="w-full max-w-[210mm] flex items-center justify-between mb-2 px-1">
+                  <span className={`text-sm font-semibold ${focusedPage === 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                    Page {measuredPages > 1 ? `1–${measuredPages}` : "1"}
+                    <span className="text-muted-foreground font-normal"> - {data.fullName || "Add page title"}</span>
                   </span>
+                  <div className="flex items-center gap-0.5 text-muted-foreground">
+                    <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Move up"><ChevronUp className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => {
+                        const el = pageRefs.current[1];
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }}
+                      disabled={totalPages < 2}
+                      className="p-1.5 rounded hover:bg-muted hover:text-foreground disabled:opacity-30"
+                      title="Next page"
+                    ><ChevronDown className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => setHiddenPages(p => ({ ...p, 0: !p[0] }))}
+                      className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                      title={hiddenPages[0] ? "Show page" : "Hide page"}
+                    >{hiddenPages[0] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+                    <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Duplicate (CV pages can't be duplicated)"><Copy className="w-4 h-4" /></button>
+                    <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Main CV can't be deleted"><Trash2 className="w-4 h-4" /></button>
+                    <button
+                      onClick={() => addBlankPage()}
+                      className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                      title="Add a blank page after"
+                    ><FilePlus className="w-4 h-4" /></button>
+                  </div>
                 </div>
 
                 <div
-                  className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                  className={`origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90 transition-opacity ${hiddenPages[0] ? "opacity-30" : ""}`}
                   style={{ transformOrigin: "top center" }}
                 >
                   <div
@@ -648,28 +678,67 @@ const Builder = () => {
                     className="w-full flex flex-col items-center"
                     onMouseDown={() => setFocusedPage(pageIdx)}
                   >
-                    <div className="flex items-center gap-2 mb-2 text-sm font-medium">
-                      <span className={isFocused ? "text-primary" : "text-muted-foreground"}>
-                        Page {pageNumber} <span className="text-muted-foreground">/ {totalPages}</span>
+                    <div className="w-full max-w-[210mm] flex items-center justify-between mb-2 px-1">
+                      <span className={`text-sm font-semibold ${isFocused ? "text-foreground" : "text-muted-foreground"}`}>
+                        Page {pageNumber}
+                        <span className="text-muted-foreground font-normal"> - Add page title</span>
                       </span>
-                      <button
-                        onClick={() => {
-                          setManualPages(p => Math.max(1, p - 1));
-                          setBlankPageHtml(prev => {
-                            const { [pageIdx]: _, ...rest } = prev;
-                            return rest;
-                          });
-                          if (focusedPage === pageIdx) setFocusedPage(0);
-                        }}
-                        className="text-destructive hover:underline text-xs"
-                        title="Remove this blank page"
-                      >
-                        remove
-                      </button>
+                      <div className="flex items-center gap-0.5 text-muted-foreground">
+                        <button
+                          onClick={() => {
+                            const el = pageRefs.current[pageIdx - 1];
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Previous page"
+                        ><ChevronUp className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => {
+                            const el = pageRefs.current[pageIdx + 1];
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
+                          disabled={pageIdx + 1 >= totalPages}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground disabled:opacity-30"
+                          title="Next page"
+                        ><ChevronDown className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => setHiddenPages(p => ({ ...p, [pageIdx]: !p[pageIdx] }))}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title={hiddenPages[pageIdx] ? "Show page" : "Hide page"}
+                        >{hiddenPages[pageIdx] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+                        <button
+                          onClick={() => {
+                            const html = blankPageHtml[pageIdx] || "";
+                            addBlankPage();
+                            setTimeout(() => {
+                              setBlankPageHtml(prev => ({ ...prev, [pageIdx + 1]: html }));
+                            }, 50);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Duplicate page"
+                        ><Copy className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => {
+                            setManualPages(p => Math.max(1, p - 1));
+                            setBlankPageHtml(prev => {
+                              const { [pageIdx]: _, ...rest } = prev;
+                              return rest;
+                            });
+                            if (focusedPage === pageIdx) setFocusedPage(0);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted hover:text-destructive"
+                          title="Delete page"
+                        ><Trash2 className="w-4 h-4" /></button>
+                        <button
+                          onClick={() => addBlankPage()}
+                          className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                          title="Add a blank page after"
+                        ><FilePlus className="w-4 h-4" /></button>
+                      </div>
                     </div>
 
                     <div
-                      className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                      className={`origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90 transition-opacity ${hiddenPages[pageIdx] ? "opacity-30" : ""}`}
                       style={{ transformOrigin: "top center" }}
                     >
                       <div
