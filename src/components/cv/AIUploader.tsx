@@ -1,0 +1,81 @@
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Upload, Loader2, FileText } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { CVData, EMPTY_CV } from "@/lib/cv-types";
+
+interface Props {
+  onExtracted: (data: CVData) => void;
+}
+
+export const AIUploader = ({ onExtracted }: Props) => {
+  const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Max 10MB.");
+      return;
+    }
+    setFileName(file.name);
+    setLoading(true);
+    try {
+      const text = await file.text().catch(() => "");
+      // For PDFs/binary, fallback: send base64
+      let payload: any = { fileName: file.name };
+      if (text && /[a-z]/i.test(text) && text.length > 50) {
+        payload.text = text.slice(0, 30000);
+      } else {
+        const buf = await file.arrayBuffer();
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf).slice(0, 1024 * 1024)));
+        payload.fileBase64 = b64;
+        payload.mimeType = file.type || "application/octet-stream";
+      }
+
+      const { data, error } = await supabase.functions.invoke("extract-cv", { body: payload });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const merged: CVData = { ...EMPTY_CV, ...data.cv };
+      onExtracted(merged);
+      toast.success("CV extracted successfully!");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Failed to extract CV");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/20 hover:bg-muted/40 transition-base">
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.txt,.md"
+        className="hidden"
+        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+      />
+      {loading ? (
+        <div className="flex flex-col items-center gap-2 py-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Extracting from {fileName}…</p>
+        </div>
+      ) : (
+        <>
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
+            <FileText className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <h3 className="font-semibold mb-1">Upload your existing CV</h3>
+          <p className="text-xs text-muted-foreground mb-3">PDF, DOCX, or TXT — AI will extract everything</p>
+          <Button onClick={() => inputRef.current?.click()} variant="default" size="sm">
+            <Upload className="w-4 h-4 mr-2" /> Choose file
+          </Button>
+        </>
+      )}
+    </div>
+  );
+};
