@@ -880,9 +880,27 @@ const Builder = () => {
               </div>
             )}
 
-            <p className="text-xs text-muted-foreground text-center">
-              ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
-            </p>
+            <div className="flex items-center justify-center gap-3">
+              <p className="text-xs text-muted-foreground text-center">
+                ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
+              </p>
+              <div className="flex items-center gap-1 border-l border-border pl-3">
+                <button
+                  type="button"
+                  onClick={undoStructural}
+                  disabled={!canUndo}
+                  title="Undo (Ctrl+Z)"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-base"
+                ><Undo2 className="w-4 h-4" /></button>
+                <button
+                  type="button"
+                  onClick={redoStructural}
+                  disabled={!canRedo}
+                  title="Redo (Ctrl+Shift+Z)"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-base"
+                ><Redo2 className="w-4 h-4" /></button>
+              </div>
+            </div>
 
             {/* Editable CV preview — main CV card + extra blank pages as separate cards */}
             <div className="flex flex-col items-center gap-8">
