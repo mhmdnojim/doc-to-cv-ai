@@ -81,6 +81,12 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "cortes", name: "Cortés", description: "Script header with peach right sidebar", accent: "from-[#f4d4c4] to-[#e8b4a0]" },
   { id: "alvarez", name: "Álvarez", description: "Pink curved shapes, modern feminine", accent: "from-[#fde0e8] to-[#f8b4c4]" },
   { id: "silva", name: "Silva", description: "Sage green sidebar, wellness vibe", accent: "from-[#5a6e5a] to-[#3a4e3a]" },
+  { id: "wilson", name: "Wilson", description: "Light teal sidebar with skill tags", accent: "from-[#e6eef0] to-[#3a5a6a]" },
+  { id: "gallego", name: "Gallego", description: "Navy header with section bands", accent: "from-[#3a5a8a] to-[#1d3550]" },
+  { id: "zaliyanti", name: "Zaliyanti", description: "Swiss two-column, label-on-left", accent: "from-slate-700 to-slate-900" },
+  { id: "choconta", name: "Choconta", description: "Botanical leaves with script accents", accent: "from-[#cfe0c8] to-[#5a7a5a]" },
+  { id: "nasser", name: "Nasser", description: "Mint sage sidebar with script header", accent: "from-[#cfdcc8] to-[#3a5a3a]" },
+  { id: "perez", name: "Pérez", description: "Soft lavender sidebar, modern feminine", accent: "from-[#dcd2ea] to-[#5a3a8a]" },
 ];
 
 export const EMPTY_CV: CVData = {
