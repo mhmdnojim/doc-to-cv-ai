@@ -196,7 +196,7 @@ const Builder = () => {
   };
 
 
-  const handleTemplateChange = (t: TemplateId) => {
+  const handleTemplateChange = (t: string) => {
     setTemplate(t);
     setSearchParams({ template: t });
   };
