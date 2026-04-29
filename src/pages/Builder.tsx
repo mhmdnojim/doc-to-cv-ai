@@ -27,9 +27,43 @@ const Builder = () => {
     return SAMPLE_CV;
   });
 
+  // Tracks the placeholder text of the most recently added item — used to auto-focus it
+  const [pendingFocusText, setPendingFocusText] = useState<string | null>(null);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
+
+  // After data changes, focus & select the freshly added placeholder text
+  useEffect(() => {
+    if (!pendingFocusText || !editableRef.current) return;
+    const t = setTimeout(() => {
+      const root = editableRef.current;
+      if (!root) return;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walker.nextNode())) {
+        if (node.textContent?.includes(pendingFocusText)) {
+          const range = document.createRange();
+          const idx = node.textContent.indexOf(pendingFocusText);
+          range.setStart(node, idx);
+          range.setEnd(node, idx + pendingFocusText.length);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          const el = node.parentElement;
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.add("just-added-pulse");
+            setTimeout(() => el.classList.remove("just-added-pulse"), 1800);
+          }
+          break;
+        }
+      }
+      setPendingFocusText(null);
+    }, 80);
+    return () => clearTimeout(t);
+  }, [data, pendingFocusText]);
 
   // Inject "+" buttons next to section headings inside the editable CV
   useEffect(() => {
