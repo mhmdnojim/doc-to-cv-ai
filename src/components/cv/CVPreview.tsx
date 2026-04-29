@@ -5,6 +5,7 @@ import {
   CompactTemplate, BoldTemplate, PhotoTemplate,
   NavarroTemplate, MitchellTemplate, FloresTemplate, CortesTemplate, AlvarezTemplate, SilvaTemplate,
   WilsonTemplate, GallegoTemplate, ZaliyantiTemplate, ChocontaTemplate, NasserTemplate, PerezTemplate,
+  ReyesTemplate, TanakaTemplate, OkonkwoTemplate, PetrovTemplate, DuboisTemplate, HassanTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
 
@@ -42,6 +43,12 @@ export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
     case "choconta": return <ChocontaTemplate data={data} />;
     case "nasser": return <NasserTemplate data={data} />;
     case "perez": return <PerezTemplate data={data} />;
+    case "reyes": return <ReyesTemplate data={data} />;
+    case "tanaka": return <TanakaTemplate data={data} />;
+    case "okonkwo": return <OkonkwoTemplate data={data} />;
+    case "petrov": return <PetrovTemplate data={data} />;
+    case "dubois": return <DuboisTemplate data={data} />;
+    case "hassan": return <HassanTemplate data={data} />;
     default: return <ModernTemplate data={data} />;
   }
 };
