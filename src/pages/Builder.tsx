@@ -25,7 +25,7 @@ import {
   type NewSectionTemplate,
 } from "@/lib/cv-section-tools";
 import { SectionPositionDialog } from "@/components/cv/SectionPositionDialog";
-import { buildStandaloneHtml, exportToPdf } from "@/lib/cv-export";
+import { exportToPdf, exportToHtml, exportToDocx } from "@/lib/cv-export";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
@@ -500,18 +500,6 @@ const Builder = () => {
     setSearchParams({ template: t });
   };
 
-  const buildExportHtml = (): string => {
-    if (!editableRef.current) return "";
-    return buildStandaloneHtml(editableRef.current, data.fullName || "CV");
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-  };
-
   const saveBeforeExport = async () => {
     if (user) {
       toast.loading("Saving CV to your account…", { id: "export-save" });
@@ -535,18 +523,28 @@ const Builder = () => {
 
   const handleExportHtml = async () => {
     await saveBeforeExport();
-    const html = buildExportHtml();
-    downloadBlob(new Blob([html], { type: "text/html" }), `${data.fullName || "cv"}.html`);
-    toast.success("HTML downloaded");
+    if (!editableRef.current) return;
+    toast.loading("Generating HTML…", { id: "export-html" });
+    try {
+      await exportToHtml(editableRef.current, `${data.fullName || "cv"}.html`);
+      toast.success("HTML downloaded", { id: "export-html" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not generate HTML", { id: "export-html" });
+    }
   };
 
   const handleExportDocx = async () => {
     await saveBeforeExport();
-    const html = buildExportHtml();
-    // Word-compatible HTML container — opens cleanly in MS Word & Google Docs
-    const wordDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/^<!doctype html>/i, "").replace(/<\/?html[^>]*>/gi, "")}</html>`;
-    downloadBlob(new Blob(["\ufeff", wordDoc], { type: "application/msword" }), `${data.fullName || "cv"}.doc`);
-    toast.success("Document downloaded");
+    if (!editableRef.current) return;
+    toast.loading("Generating Word document…", { id: "export-docx" });
+    try {
+      await exportToDocx(editableRef.current, `${data.fullName || "cv"}.docx`);
+      toast.success("Word document downloaded", { id: "export-docx" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not generate Word document", { id: "export-docx" });
+    }
   };
 
   // Update array sections directly
