@@ -655,7 +655,7 @@ const Builder = () => {
                   >
                     <div className="aspect-[210/297] bg-white relative overflow-hidden">
                       <div className="absolute inset-0 origin-top-left scale-[0.13]">
-                        <CVPreview data={data} template={t.id} />
+                        <CVPreview data={previewData} template={t.id} />
                       </div>
                     </div>
                     <div className="px-2 py-1.5 text-[11px] font-medium text-left bg-card flex items-center justify-between">
