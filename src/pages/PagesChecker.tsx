@@ -32,6 +32,40 @@ interface HealthPayload {
 
 const normalizeUrl = (url: string) => url.replace(/\/+$/, "");
 
+const probeBuiltSite = (targetUrl: string, timeoutMs = 12000) =>
+  new Promise<HealthPayload>((resolve, reject) => {
+    const probeUrl = new URL(targetUrl);
+    probeUrl.searchParams.set(HEALTH_QUERY_PARAM, "1");
+    probeUrl.searchParams.set("t", Date.now().toString());
+
+    const iframe = document.createElement("iframe");
+    iframe.src = probeUrl.toString();
+    iframe.title = "GitHub Pages health probe";
+    iframe.className = "fixed h-px w-px opacity-0 pointer-events-none";
+
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      iframe.remove();
+      clearTimeout(timer);
+    };
+
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("The built app did not send a health response before the timeout."));
+    }, timeoutMs);
+
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== probeUrl.origin) return;
+      const data = event.data as Partial<HealthPayload>;
+      if (data?.type !== HEALTH_MESSAGE_TYPE || data.href !== probeUrl.toString()) return;
+      cleanup();
+      resolve(data as HealthPayload);
+    }
+
+    window.addEventListener("message", onMessage);
+    document.body.appendChild(iframe);
+  });
+
 export default function PagesChecker() {
   const [owner, setOwner] = useState("");
   const [repo, setRepo] = useState("");
