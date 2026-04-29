@@ -146,6 +146,8 @@ serve(async (req) => {
         text:
           `Extract structured CV / resume data from the attached ${extractedText ? "text" : "document"}. ` +
           `Filename: ${fileName || "unknown"}. ` +
+          `The document may be in ANY language — including Chinese (中文), Kazakh (Қазақша), Bulgarian (Български), Turkmen (Türkmençe), Arabic (العربية), Indonesian (Bahasa Indonesia), or others. ` +
+          `PRESERVE THE ORIGINAL LANGUAGE AND SCRIPT exactly as written — do NOT translate to English. ` +
           `Be thorough — read every page, extract every job, every degree, every skill, every language, every project. ` +
           `Use empty strings for missing fields. Give each item a unique short id like "1","2","3". ` +
           `If the document is clearly NOT a CV/resume, return all empty fields rather than inventing data.`
