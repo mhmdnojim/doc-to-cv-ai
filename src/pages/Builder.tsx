@@ -1,22 +1,52 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
+import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
 
+interface UserTemplate { id: string; name: string; html: string; }
+
 const Builder = () => {
+  const { user, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTemplate = (searchParams.get("template") as TemplateId) || "modern";
-  const [template, setTemplate] = useState<TemplateId>(initialTemplate);
+  const initialTemplate = searchParams.get("template") || "modern";
+  // template can be a built-in TemplateId OR a user template id (uuid). We treat it as string.
+  const [template, setTemplate] = useState<string>(initialTemplate);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+  const [showTplDialog, setShowTplDialog] = useState(false);
+  const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const editableRef = useRef<HTMLDivElement>(null);
+
+  const activeUserTemplate = userTemplates.find(t => t.id === template);
+  const userTemplateHtml = activeUserTemplate?.html;
+
+  const fetchUserTemplates = useCallback(async () => {
+    if (!user) { setUserTemplates([]); return; }
+    const { data, error } = await supabase.from("user_templates").select("id,name,html").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (error) { console.error(error); return; }
+    setUserTemplates(data || []);
+  }, [user]);
+
+  useEffect(() => { fetchUserTemplates(); }, [fetchUserTemplates]);
+
+  const deleteUserTemplate = async (id: string) => {
+    if (!confirm("Delete this template?")) return;
+    const { error } = await supabase.from("user_templates").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Template deleted");
+    if (template === id) handleTemplateChange("modern");
+    fetchUserTemplates();
+  };
 
   const [data, setData] = useState<CVData>(() => {
     try {
@@ -166,7 +196,7 @@ const Builder = () => {
   };
 
 
-  const handleTemplateChange = (t: TemplateId) => {
+  const handleTemplateChange = (t: string) => {
     setTemplate(t);
     setSearchParams({ template: t });
   };
@@ -288,21 +318,18 @@ const Builder = () => {
             <span className="font-semibold text-sm">CV Editor</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant={showUpload ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowUpload(s => !s)}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Import CV
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Link to="/auth"><Button variant="ghost" size="sm"><LogIn className="w-4 h-4 mr-2" />Sign in</Button></Link>
+            )}
+            <Button variant={showUpload ? "default" : "outline"} size="sm" onClick={() => setShowUpload(s => !s)}>
+              <Upload className="w-4 h-4 mr-2" />Import CV
             </Button>
-            <Button
-              variant={showTemplates ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowTemplates(s => !s)}
-            >
-              <LayoutTemplate className="w-4 h-4 mr-2" />
-              Templates
+            <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
+              <LayoutTemplate className="w-4 h-4 mr-2" />Templates
             </Button>
             <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
               <Download className="w-4 h-4 mr-2" /> Export PDF
@@ -345,6 +372,56 @@ const Builder = () => {
                     </button>
                   );
                 })}
+              </div>
+
+              {/* My templates */}
+              <div className="mt-5 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">My templates</h4>
+                  <button
+                    onClick={() => user ? setShowTplDialog(true) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
+                    className="text-primary hover:text-primary/80"
+                    title="Upload screenshot to create a template"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                  </button>
+                </div>
+                {!user ? (
+                  <p className="text-[11px] text-muted-foreground px-1"><Link to="/auth" className="text-primary hover:underline">Sign in</Link> to upload your own templates.</p>
+                ) : userTemplates.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground px-1">No custom templates yet. Click <ImagePlus className="w-3 h-3 inline" /> to upload a screenshot.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {userTemplates.map(t => {
+                      const active = t.id === template;
+                      return (
+                        <div key={t.id} className="relative group">
+                          <button
+                            onClick={() => handleTemplateChange(t.id)}
+                            className={`block w-full rounded-lg overflow-hidden border-2 transition-base ${active ? "border-primary shadow-glow" : "border-border hover:border-primary/50"}`}
+                          >
+                            <div className="aspect-[210/297] bg-white relative overflow-hidden">
+                              <div className="absolute inset-0 origin-top-left scale-[0.13]">
+                                <CVPreview data={data} template={t.id} userTemplateHtml={t.html} />
+                              </div>
+                            </div>
+                            <div className="px-2 py-1.5 text-[11px] font-medium text-left bg-card flex items-center justify-between">
+                              <span className="truncate">{t.name}</span>
+                              {active && <Check className="w-3 h-3 text-primary shrink-0" />}
+                            </div>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-card/90 text-destructive opacity-0 group-hover:opacity-100 transition-base"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </aside>
           )}
@@ -414,7 +491,7 @@ const Builder = () => {
                   spellCheck
                   className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
                 >
-                  <CVPreview data={data} template={template} />
+                  <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
                 </div>
               </div>
             </div>
@@ -424,7 +501,7 @@ const Builder = () => {
 
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
-        <CVPreview data={data} template={template} />
+        <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
       </div>
     </div>
   );
