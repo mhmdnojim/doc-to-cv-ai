@@ -13,6 +13,7 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
+  LevelFormat,
 } from "docx";
 import { saveAs } from "file-saver";
 
@@ -374,7 +375,115 @@ async function imageToBuffer(src: string): Promise<{ buffer: ArrayBuffer; type: 
   }
 }
 
-async function walk(el: HTMLElement, blocks: Array<Paragraph | Table>) {
+/** CSS list-style-type → docx LevelFormat + numbering text template. */
+function listFormatFor(el: HTMLElement, ordered: boolean, level: number): {
+  format: (typeof LevelFormat)[keyof typeof LevelFormat];
+  text: string;
+} {
+  const lst = window.getComputedStyle(el).listStyleType || (ordered ? "decimal" : "disc");
+  if (!ordered) {
+    // CSS bullets — pick a glyph per nesting level if not explicitly set
+    const glyphByLevel = ["•", "◦", "▪", "‣", "·"];
+    const map: Record<string, string> = {
+      disc: "•",
+      circle: "◦",
+      square: "▪",
+      none: "",
+    };
+    const text = map[lst] ?? glyphByLevel[Math.min(level, glyphByLevel.length - 1)];
+    return { format: LevelFormat.BULLET, text };
+  }
+  // Ordered
+  const ref = `%${level + 1}`;
+  switch (lst) {
+    case "lower-alpha":
+    case "lower-latin":
+      return { format: LevelFormat.LOWER_LETTER, text: `${ref}.` };
+    case "upper-alpha":
+    case "upper-latin":
+      return { format: LevelFormat.UPPER_LETTER, text: `${ref}.` };
+    case "lower-roman":
+      return { format: LevelFormat.LOWER_ROMAN, text: `${ref}.` };
+    case "upper-roman":
+      return { format: LevelFormat.UPPER_ROMAN, text: `${ref}.` };
+    default:
+      return { format: LevelFormat.DECIMAL, text: `${ref}.` };
+  }
+}
+
+/** Pixel-based extra left indent (computed padding-left of the list element). */
+function extraIndentDxa(el: HTMLElement): number {
+  const cs = window.getComputedStyle(el);
+  const px = parseFloat(cs.paddingLeft || "0") + parseFloat(cs.marginLeft || "0");
+  // 1 inch = 96px = 1440 DXA → DXA = px * 15
+  return Math.max(0, Math.round(px * 15));
+}
+
+/** Walk the children of a single <li>: emit one paragraph for inline content,
+ *  then recurse into nested lists / block children with an incremented level. */
+async function walkListItem(
+  li: HTMLElement,
+  ordered: boolean,
+  level: number,
+  numberingRefs: Set<string>,
+  blocks: Array<Paragraph | Table>
+) {
+  // Build a paragraph from the li's *direct* inline + leaf content (skip nested lists)
+  const inlineNodes: Node[] = [];
+  const blockChildren: HTMLElement[] = [];
+  for (const child of Array.from(li.childNodes)) {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const tag = (child as HTMLElement).tagName;
+      if (tag === "UL" || tag === "OL") {
+        blockChildren.push(child as HTMLElement);
+        continue;
+      }
+    }
+    inlineNodes.push(child);
+  }
+
+  const baseStyle = getRunStyle(li);
+  const runs: TextRun[] = [];
+  for (const n of inlineNodes) runs.push(...nodeToRuns(n, baseStyle));
+  if (runs.length === 0) runs.push(new TextRun({ text: "" }));
+
+  const ref = ordered ? `ord-${level}` : `bul-${level}`;
+  numberingRefs.add(ref);
+
+  blocks.push(
+    new Paragraph({
+      children: runs,
+      alignment: alignmentFor(li),
+      numbering: { reference: ref, level },
+      spacing: { after: 60 },
+    })
+  );
+
+  // Recurse into nested lists / blocks within this li
+  for (const child of blockChildren) {
+    await walkList(child, level + 1, numberingRefs, blocks);
+  }
+}
+
+/** Walk a <ul> / <ol> at a given nesting level. */
+async function walkList(
+  list: HTMLElement,
+  level: number,
+  numberingRefs: Set<string>,
+  blocks: Array<Paragraph | Table>
+) {
+  const ordered = list.tagName === "OL";
+  const items = Array.from(list.children).filter((c) => c.tagName === "LI") as HTMLElement[];
+  for (const li of items) {
+    await walkListItem(li, ordered, Math.min(level, 4), numberingRefs, blocks);
+  }
+}
+
+async function walk(
+  el: HTMLElement,
+  blocks: Array<Paragraph | Table>,
+  numberingRefs: Set<string>
+) {
   if (el.dataset.cvTool || el.dataset.addBtn || el.dataset.sectionCtrl) return;
 
   const tag = el.tagName;
@@ -402,21 +511,9 @@ async function walk(el: HTMLElement, blocks: Array<Paragraph | Table>) {
     return;
   }
 
-  // List
+  // Lists (handles arbitrary nesting)
   if (tag === "UL" || tag === "OL") {
-    const items = Array.from(el.children).filter((c) => c.tagName === "LI") as HTMLElement[];
-    for (const li of items) {
-      const runs = nodeToRuns(li, getRunStyle(li));
-      if (runs.length === 0) runs.push(new TextRun({ text: "" }));
-      blocks.push(
-        new Paragraph({
-          children: runs,
-          bullet: tag === "UL" ? { level: 0 } : undefined,
-          numbering: tag === "OL" ? { reference: "ordered-list", level: 0 } : undefined,
-          alignment: alignmentFor(li),
-        })
-      );
-    }
+    await walkList(el, 0, numberingRefs, blocks);
     return;
   }
 
@@ -446,7 +543,7 @@ async function walk(el: HTMLElement, blocks: Array<Paragraph | Table>) {
 
   // Container — recurse
   for (const child of Array.from(el.children)) {
-    await walk(child as HTMLElement, blocks);
+    await walk(child as HTMLElement, blocks, numberingRefs);
   }
 }
 
@@ -463,26 +560,36 @@ export async function exportToDocx(source: HTMLElement, filename: string) {
 
   try {
     const blocks: Array<Paragraph | Table> = [];
-    await walk(clone, blocks);
+    const numberingRefs = new Set<string>();
+    await walk(clone, blocks, numberingRefs);
     if (blocks.length === 0) blocks.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
 
-    const doc = new Document({
-      numbering: {
-        config: [
+    // Build one numbering config per used ref. Each ref defines a single
+    // level, but we vary indent/glyph by the level encoded in the ref name.
+    const bulletGlyphs = ["•", "◦", "▪", "‣", "·"];
+    const numberingConfig = Array.from(numberingRefs).map((ref) => {
+      const [kind, lvlStr] = ref.split("-");
+      const level = parseInt(lvlStr, 10) || 0;
+      const ordered = kind === "ord";
+      const indentLeft = 720 * (level + 1); // 0.5" per nest
+      return {
+        reference: ref,
+        levels: [
           {
-            reference: "ordered-list",
-            levels: [
-              {
-                level: 0,
-                format: "decimal" as any,
-                text: "%1.",
-                alignment: AlignmentType.LEFT,
-                style: { paragraph: { indent: { left: 720, hanging: 360 } } },
-              },
-            ],
+            level: 0, // we always store at level 0 of this ref; indent encodes nesting
+            format: ordered ? LevelFormat.DECIMAL : LevelFormat.BULLET,
+            text: ordered ? "%1." : bulletGlyphs[Math.min(level, bulletGlyphs.length - 1)],
+            alignment: AlignmentType.LEFT,
+            style: { paragraph: { indent: { left: indentLeft, hanging: 360 } } },
           },
         ],
-      },
+      };
+    });
+
+    const doc = new Document({
+      numbering: { config: numberingConfig.length > 0 ? numberingConfig : [
+        { reference: "noop", levels: [{ level: 0, format: LevelFormat.BULLET, text: "•", alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 360 } } } }] }
+      ] },
       sections: [
         {
           properties: {
