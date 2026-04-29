@@ -260,6 +260,105 @@ export interface InjectOptions {
   onReorder?: () => void;
 }
 
+// "+ Add subsection here" — same visual style as gap button, different label.
+function makeSubsectionGapButton(onClick: () => void): HTMLElement {
+  const btn = document.createElement("button");
+  btn.setAttribute(TOOL_ATTR, "subgap");
+  btn.setAttribute("contenteditable", "false");
+  btn.title = "Add subsection here";
+  btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px;">${PLUS_ICON}<span>Add subsection here</span></span>`;
+  btn.style.cssText = [
+    "all: unset",
+    "display: flex",
+    "align-items: center",
+    "justify-content: center",
+    "width: 100%",
+    "height: 14px",
+    "margin: 2px 0",
+    "border-radius: 6px",
+    "background: hsl(var(--primary) / 0.06)",
+    "color: hsl(var(--primary))",
+    "font-size: 10.5px",
+    "font-weight: 600",
+    "cursor: pointer",
+    "opacity: 0",
+    "transition: opacity .15s, height .15s",
+    "border: 1px dashed hsl(var(--primary) / 0.35)",
+  ].join(";");
+  btn.onmouseenter = () => { btn.style.opacity = "1"; btn.style.height = "22px"; };
+  btn.onmouseleave = () => { btn.style.opacity = "0"; btn.style.height = "14px"; };
+  btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); onClick(); };
+  return btn;
+}
+
+// Find the container that holds this section's repeating subsection items.
+// Strategy: pick the descendant whose direct children include 2+ block elements
+// of the same tag (e.g. multiple <div>s, each one job entry). Falls back to the
+// section itself when only one item exists.
+function findSubsectionContainer(sec: HTMLElement): { container: HTMLElement; items: HTMLElement[] } | null {
+  const queue: HTMLElement[] = [sec];
+  let best: { container: HTMLElement; items: HTMLElement[] } | null = null;
+  while (queue.length) {
+    const el = queue.shift()!;
+    const blockKids = Array.from(el.children).filter(c => {
+      const t = (c as HTMLElement).tagName;
+      const isTool = (c as HTMLElement).hasAttribute(TOOL_ATTR);
+      if (isTool) return false;
+      return t === "DIV" || t === "LI" || t === "ARTICLE" || t === "P";
+    }) as HTMLElement[];
+    if (blockKids.length >= 2) {
+      // require they look like siblings: same tag for majority
+      const tagCounts: Record<string, number> = {};
+      blockKids.forEach(k => { tagCounts[k.tagName] = (tagCounts[k.tagName] || 0) + 1; });
+      const dominant = Object.entries(tagCounts).sort((a, b) => b[1] - a[1])[0];
+      if (dominant && dominant[1] >= 2) {
+        const items = blockKids.filter(k => k.tagName === dominant[0]);
+        if (!best || items.length > best.items.length) best = { container: el, items };
+      }
+    }
+    Array.from(el.children).forEach(c => queue.push(c as HTMLElement));
+  }
+  return best;
+}
+
+function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
+  const found = findSubsectionContainer(sec);
+  if (!found) return;
+  const { container, items } = found;
+
+  const insertSubAt = (refNode: HTMLElement | null, position: "before" | "after" | "end") => {
+    // Clone the nearest existing item as a template, clear text content placeholders.
+    const template = (refNode || items[items.length - 1]).cloneNode(true) as HTMLElement;
+    // Remove any tool elements from the clone
+    template.querySelectorAll(`[${TOOL_ATTR}]`).forEach(el => el.remove());
+    template.removeAttribute(SECTION_ATTR);
+    // Soften text so it's clearly a new entry
+    template.querySelectorAll<HTMLElement>("*").forEach(el => {
+      if (el.children.length === 0 && el.textContent && el.textContent.trim()) {
+        el.textContent = "New entry";
+      }
+    });
+    if (position === "end") container.appendChild(template);
+    else if (position === "before" && refNode) container.insertBefore(template, refNode);
+    else if (position === "after" && refNode) container.insertBefore(template, refNode.nextSibling);
+    // Re-run injection so new item also gets gaps + handles
+    setTimeout(() => {
+      const root = sec.closest<HTMLElement>("[contenteditable]") || sec.ownerDocument!.body;
+      injectSectionTools(root, opts);
+    }, 30);
+  };
+
+  items.forEach((item, i) => {
+    const gap = makeSubsectionGapButton(() => insertSubAt(item, "before"));
+    container.insertBefore(gap, item);
+    if (i === items.length - 1) {
+      const gapEnd = makeSubsectionGapButton(() => insertSubAt(item, "after"));
+      container.insertBefore(gapEnd, item.nextSibling);
+    }
+  });
+}
+
+
 export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
   cleanupTools(root);
   const sections = listSections(root);
