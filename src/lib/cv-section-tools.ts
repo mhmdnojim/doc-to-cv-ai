@@ -494,10 +494,11 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
   items.forEach((item) => {
     attachHoverFrame(item, {
       label: "subsection",
-      // Use a warmer accent + tint so subsections read as nested, not duplicated.
-      accent: "hsl(var(--accent-foreground, var(--primary)))",
-      bgTint: "hsl(var(--muted) / 0.5)",
-      compact: true, // smaller, inset buttons so they don't overlap section buttons
+      // Distinct amber tint so subsections are clearly different from the
+      // primary-blue section tint — easy to tell them apart at a glance.
+      accent: "hsl(35 90% 50%)",
+      bgTint: "hsl(35 90% 50% / 0.12)",
+      compact: true, // smaller, inset corner buttons
       onInsertAbove: () => insertSubAt(item, "before"),
       onInsertBelow: () => insertSubAt(item, "after"),
     });
