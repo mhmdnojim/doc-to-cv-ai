@@ -73,27 +73,6 @@ export default function PagesChecker() {
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get(HEALTH_QUERY_PARAM) !== "1" || window.parent === window) return;
-
-    const baseUrl = new URL(import.meta.env.BASE_URL || "/", window.location.origin).toString();
-    const builderRedirectUrl = new URL("builder", baseUrl).toString();
-
-    window.parent.postMessage(
-      {
-        type: HEALTH_MESSAGE_TYPE,
-        ok: true,
-        href: window.location.href,
-        pathname: window.location.pathname,
-        baseUrl,
-        builderRedirectUrl,
-        timestamp: Date.now(),
-      } satisfies HealthPayload,
-      window.location.origin
-    );
-  }, []);
-
-  useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
