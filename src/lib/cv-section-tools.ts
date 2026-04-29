@@ -506,6 +506,44 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
 }
 
 
+/**
+ * Clone a section for "add above/below". Keeps the heading + at least one
+ * subsection (the first repeating child if there are several). All injected
+ * tool elements are stripped, and text is softened to "New entry" so it's
+ * obvious the copy needs editing.
+ */
+function cloneSectionForInsert(sec: HTMLElement): HTMLElement {
+  const clone = sec.cloneNode(true) as HTMLElement;
+  // Strip injected tools / IDs from clone
+  clone.querySelectorAll(`[${TOOL_ATTR}]`).forEach(el => el.remove());
+  clone.removeAttribute(SECTION_ATTR);
+
+  // If the section has a repeating subsection container with multiple items,
+  // keep only the first item so the copy starts with one clean subsection.
+  const found = findSubsectionContainer(clone);
+  if (found && found.items.length > 1) {
+    found.items.slice(1).forEach(item => item.remove());
+  }
+
+  // Soften leaf text so it's clearly a fresh copy ready to be edited.
+  clone.querySelectorAll<HTMLElement>("*").forEach(el => {
+    if (el.children.length === 0 && el.textContent && el.textContent.trim()) {
+      // Preserve headings as-is so the user keeps the section name; only
+      // soften body/leaf text inside subsections.
+      const tag = el.tagName;
+      if (tag === "H1" || tag === "H2" || tag === "H3") return;
+      el.textContent = "New entry";
+    }
+  });
+
+  // Reset positioning side-effects from the original
+  clone.style.position = "";
+  clone.style.outline = "";
+  clone.style.outlineOffset = "";
+  clone.removeAttribute("data-cv-orig-bg");
+  return clone;
+}
+
 export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
   cleanupTools(root);
   const sections = listSections(root);
@@ -578,13 +616,20 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
 
-      // Hover frame: "+" above (insert before / start) and "+" below (insert after / end)
+      // Hover frame: "+" above/below clones THIS section (with at least one
+      // of its subsections) and inserts it directly. The user can then
+      // freely edit or delete entries inside the new copy.
+      const cloneAndInsert = (position: "before" | "after") => {
+        const clone = cloneSectionForInsert(sec.el);
+        if (position === "before") sec.el.parentElement?.insertBefore(clone, sec.el);
+        else sec.el.parentElement?.insertBefore(clone, sec.el.nextSibling);
+        opts.onReorder?.();
+        setTimeout(() => injectSectionTools(root, opts), 30);
+      };
       attachHoverFrame(sec.el, {
         label: "section",
-        onInsertAbove: () =>
-          opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id }),
-        onInsertBelow: () =>
-          opts.onInsert(idx === inCol.length - 1 ? { mode: "end", column: col } : { mode: "after", sectionId: sec.id }),
+        onInsertAbove: () => cloneAndInsert("before"),
+        onInsertBelow: () => cloneAndInsert("after"),
       });
 
       // Inject "Add subsection here" gaps for repeating items inside this section.
