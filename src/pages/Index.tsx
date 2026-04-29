@@ -139,7 +139,7 @@ const Index = () => {
       </section>
 
       <footer className="border-t border-border py-8">
-        <div className="container text-center text-sm text-muted-foreground">Built with ❤️ — make every application count.</div>
+        <div className="container text-center text-sm text-muted-foreground">With US — make your CV count</div>
       </footer>
     </div>
   );
