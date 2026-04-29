@@ -738,7 +738,7 @@ const Builder = () => {
                     </div>
 
                     <div
-                      className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                      className={`origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90 transition-opacity ${hiddenPages[pageIdx] ? "opacity-30" : ""}`}
                       style={{ transformOrigin: "top center" }}
                     >
                       <div
