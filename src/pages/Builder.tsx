@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "cv-builder-data";
