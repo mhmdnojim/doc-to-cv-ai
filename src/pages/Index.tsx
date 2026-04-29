@@ -1,17 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { TEMPLATES, SAMPLE_CV } from "@/lib/cv-types";
+import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { FileText, Search, Sparkles, Wand2, Upload, Star } from "lucide-react";
 
-const CATEGORIES = [
-  { label: "All", icon: "✨" },
-  { label: "Professional", icon: "💼" },
-  { label: "Creative", icon: "🎨" },
-  { label: "Modern", icon: "⚡" },
-  { label: "Minimal", icon: "◻️" },
-  { label: "Academic", icon: "🎓" },
+const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] = [
+  { label: "All",          icon: "✨", ids: "all" },
+  { label: "Professional", icon: "💼", ids: ["professional", "corporate", "executive", "classic"] },
+  { label: "Creative",     icon: "🎨", ids: ["creative", "designer", "bold", "photo"] },
+  { label: "Modern",       icon: "⚡", ids: ["modern", "tech", "professional", "photo"] },
+  { label: "Minimal",      icon: "◻️", ids: ["minimal", "compact", "elegant", "classic"] },
+  { label: "Academic",     icon: "🎓", ids: ["academic", "classic", "elegant", "executive"] },
 ];
 
 const EXPLORE = [
