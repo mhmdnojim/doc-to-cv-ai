@@ -479,6 +479,7 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     if (position === "end") container.appendChild(template);
     else if (position === "before" && refNode) container.insertBefore(template, refNode);
     else if (position === "after" && refNode) container.insertBefore(template, refNode.nextSibling);
+    opts.onMutate?.();
     // Re-run injection so new item also gets gaps + handles
     setTimeout(() => {
       const root = sec.closest<HTMLElement>("[contenteditable]") || sec.ownerDocument!.body;
