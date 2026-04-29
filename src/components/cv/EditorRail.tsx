@@ -32,6 +32,7 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
   const [busy, setBusy] = useState(false);
   const [lastSelection, setLastSelection] = useState("");
   const savedRange = useRef<Range | null>(null);
+  const [currentSize, setCurrentSize] = useState(14);
 
   // Capture selection whenever it changes inside the editor
   useEffect(() => {
