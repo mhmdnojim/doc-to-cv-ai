@@ -46,7 +46,10 @@ export interface Project {
   link: string;
 }
 
-export type TemplateId = "modern" | "classic" | "minimal" | "creative" | "executive" | "tech";
+export type TemplateId =
+  | "modern" | "classic" | "minimal" | "creative" | "executive" | "tech"
+  | "elegant" | "professional" | "corporate" | "designer" | "academic"
+  | "compact" | "bold" | "photo";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -57,10 +60,18 @@ export interface TemplateMeta {
 
 export const TEMPLATES: TemplateMeta[] = [
   { id: "modern", name: "Modern", description: "Clean two-column layout with accent sidebar", accent: "from-indigo-500 to-violet-500" },
+  { id: "elegant", name: "Elegant", description: "Refined serif headers with photo banner", accent: "from-stone-700 to-stone-900" },
+  { id: "professional", name: "Professional", description: "Photo + dark header, perfect for corporate", accent: "from-slate-800 to-slate-950" },
   { id: "classic", name: "Classic", description: "Traditional single column, ATS-friendly", accent: "from-slate-700 to-slate-900" },
   { id: "minimal", name: "Minimal", description: "Whitespace-rich, elegant typography", accent: "from-zinc-400 to-zinc-600" },
+  { id: "corporate", name: "Corporate", description: "Navy sidebar with crisp structure", accent: "from-blue-800 to-blue-950" },
+  { id: "designer", name: "Designer", description: "Pastel header with circular photo frame", accent: "from-rose-300 to-amber-200" },
   { id: "creative", name: "Creative", description: "Bold colors and modern grid", accent: "from-pink-500 to-orange-500" },
   { id: "executive", name: "Executive", description: "Sophisticated serif headers", accent: "from-emerald-700 to-emerald-900" },
+  { id: "academic", name: "Academic", description: "Centered name, traditional CV format", accent: "from-neutral-600 to-neutral-800" },
+  { id: "compact", name: "Compact", description: "Dense layout maximizing space", accent: "from-gray-600 to-gray-800" },
+  { id: "bold", name: "Bold", description: "Large typography, statement header", accent: "from-red-500 to-rose-700" },
+  { id: "photo", name: "Photo Pro", description: "Large photo banner with dark overlay", accent: "from-teal-600 to-emerald-700" },
   { id: "tech", name: "Tech", description: "Monospace accents, developer focus", accent: "from-cyan-500 to-blue-600" },
 ];
 
