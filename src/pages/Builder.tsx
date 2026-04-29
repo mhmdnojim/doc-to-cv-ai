@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 const STORAGE_KEY = "cv-builder-data";
@@ -88,6 +88,19 @@ const Builder = () => {
     }]};
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(next);
+  };
+
+  // Delete helpers
+  const touch = () => localStorage.setItem(HAS_DATA_KEY, "1");
+  const removeExperience = (id: string) => { touch(); setData({ ...data, experience: data.experience.filter(x => x.id !== id) }); };
+  const removeEducation = (id: string) => { touch(); setData({ ...data, education: data.education.filter(x => x.id !== id) }); };
+  const removeProject = (id: string) => { touch(); setData({ ...data, projects: data.projects.filter(x => x.id !== id) }); };
+  const removeSkill = (i: number) => { touch(); setData({ ...data, skills: data.skills.filter((_, idx) => idx !== i) }); };
+  const removeLanguage = (id: string) => { touch(); setData({ ...data, languages: data.languages.filter(x => x.id !== id) }); };
+  const clearContact = (field: "email" | "phone" | "location" | "website") => { touch(); setData({ ...data, [field]: "" }); };
+  const editContact = (field: "email" | "phone" | "location" | "website", label: string) => {
+    const v = prompt(`Edit ${label}:`, (data as any)[field] || "");
+    if (v !== null) { touch(); setData({ ...data, [field]: v }); }
   };
 
   const loadSample = () => {
@@ -215,6 +228,108 @@ const Builder = () => {
                 <span className="text-muted-foreground">·</span>
                 <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
               </span>
+            </div>
+
+            {/* Manage items panel */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold text-sm">Manage CV items</h3>
+                <span className="text-xs text-muted-foreground">— remove or edit any element</span>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Contact</h4>
+                <div className="flex flex-wrap gap-2">
+                  {(["email","phone","location","website"] as const).map(f => {
+                    const val = (data as any)[f] as string;
+                    return val ? (
+                      <span key={f} className="inline-flex items-center gap-1.5 text-xs bg-muted px-2 py-1 rounded-md group">
+                        <button onClick={() => editContact(f, f)} className="hover:text-primary">{val}</button>
+                        <button onClick={() => clearContact(f)} className="text-muted-foreground hover:text-destructive">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ) : (
+                      <button key={f} onClick={() => editContact(f, f)} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary">
+                        + {f}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Skills ({data.skills.length})</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.skills.map((s, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-md">
+                      {s}
+                      <button onClick={() => removeSkill(i)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                  <button onClick={addSkill} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary inline-flex items-center gap-1">
+                    <Plus className="w-3 h-3" /> Add skill
+                  </button>
+                </div>
+              </div>
+
+              {/* Languages */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Languages ({data.languages.length})</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {data.languages.map(l => (
+                    <span key={l.id} className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded-md">
+                      {l.name} · {l.level}
+                      <button onClick={() => removeLanguage(l.id)} className="hover:text-destructive"><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                  <button onClick={addLanguage} className="text-xs px-2 py-1 rounded-md border border-dashed border-border text-muted-foreground hover:text-primary hover:border-primary inline-flex items-center gap-1">
+                    <Plus className="w-3 h-3" /> Add language
+                  </button>
+                </div>
+              </div>
+
+              {/* Experience */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Experience ({data.experience.length})</h4>
+                <div className="space-y-1.5">
+                  {data.experience.map(e => (
+                    <div key={e.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
+                      <span className="truncate"><strong>{e.position || "Untitled"}</strong> — {e.company} <span className="text-muted-foreground">({e.startDate}–{e.endDate})</span></span>
+                      <button onClick={() => removeExperience(e.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Education */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Education ({data.education.length})</h4>
+                <div className="space-y-1.5">
+                  {data.education.map(e => (
+                    <div key={e.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
+                      <span className="truncate"><strong>{e.degree} {e.field}</strong> — {e.school} <span className="text-muted-foreground">({e.startDate}–{e.endDate})</span></span>
+                      <button onClick={() => removeEducation(e.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Projects */}
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Projects ({data.projects.length})</h4>
+                <div className="space-y-1.5">
+                  {data.projects.map(p => (
+                    <div key={p.id} className="flex items-center justify-between gap-2 text-xs bg-muted/50 px-3 py-2 rounded-md">
+                      <span className="truncate"><strong>{p.name}</strong> {p.link && <span className="text-muted-foreground">— {p.link}</span>}</span>
+                      <button onClick={() => removeProject(p.id)} className="text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <p className="text-xs text-muted-foreground text-center">
