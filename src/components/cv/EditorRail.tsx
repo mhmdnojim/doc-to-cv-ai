@@ -1,22 +1,36 @@
 import { useState, useRef, useEffect } from "react";
-import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft } from "lucide-react";
+import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type RailKey = "templates" | "text" | "magic";
+type RailKey = "templates" | "add" | "text" | "magic";
+
+interface AddActions {
+  addExperience: () => void;
+  addEducation: () => void;
+  addSkill: () => void;
+  addLanguage: () => void;
+  addProject: () => void;
+  addCustomSection: (side: "left" | "right") => void;
+  loadSample: () => void;
+  clearAll: () => void;
+}
 
 interface Props {
   /** Provided panel content for templates (existing UI) */
   templatesPanel: React.ReactNode;
   /** Reference to the contenteditable element so we can apply formatting / selection edits */
   editorRef: React.RefObject<HTMLDivElement>;
+  /** Section / sample actions, surfaced from Builder */
+  addActions: AddActions;
 }
 
 const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
   { key: "templates", label: "Templates", icon: LayoutTemplate },
+  { key: "add",       label: "Add",       icon: PlusSquare },
   { key: "text",      label: "Text",      icon: Type },
   { key: "magic",     label: "Magic Write", icon: Sparkles },
 ];
@@ -24,7 +38,7 @@ const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
 const MIN_FONT = 8;
 const MAX_FONT = 72;
 
-export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
+export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
   const [active, setActive] = useState<RailKey | null>("templates");
 
   // Magic Write state
@@ -215,6 +229,33 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
 
           <div className="p-3">
             {active === "templates" && templatesPanel}
+
+            {active === "add" && (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">Add new sections or items to your CV.</p>
+                <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Sections</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" onClick={addActions.addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
+                    <Button size="sm" variant="outline" onClick={addActions.addProject} className="col-span-2"><Plus className="w-3 h-3 mr-1" />Project</Button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Custom section</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("left")}>← Left</Button>
+                    <Button size="sm" variant="outline" onClick={() => addActions.addCustomSection("right")}>Right →</Button>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
+                  <button onClick={addActions.loadSample} className="text-primary hover:underline">Load sample</button>
+                  <button onClick={addActions.clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
+                </div>
+              </div>
+            )}
 
             {active === "text" && (
               <div className="space-y-4">

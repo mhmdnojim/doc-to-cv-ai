@@ -6,7 +6,8 @@ import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { EditorRail } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -358,15 +359,33 @@ const Builder = () => {
     setSearchParams({ template: t });
   };
 
-  const handleExport = async () => {
-    // Save to account first (if signed in)
+  const buildExportHtml = (): string => {
+    if (!editableRef.current) return "";
+    const clone = editableRef.current.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
+    const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
+      .map(n => n.outerHTML).join("\n");
+    const fontFamily = editableRef.current.style.fontFamily || "";
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${data.fullName || "CV"}</title>${styles}<style>body{margin:0;padding:24px;background:#fff;font-family:${fontFamily || "Inter, system-ui, sans-serif"};}</style></head><body>${clone.innerHTML}</body></html>`;
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
+  const saveBeforeExport = async () => {
     if (user) {
       toast.loading("Saving CV to your account…", { id: "export-save" });
       await saveCv(true);
-      toast.success("Saved — opening print dialog", { id: "export-save" });
-    } else {
-      toast.success(`Opening print dialog… ${totalPages} page${totalPages > 1 ? "s" : ""}`);
+      toast.success("Saved", { id: "export-save" });
     }
+  };
+
+  const handleExportPdf = async () => {
+    await saveBeforeExport();
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
@@ -383,6 +402,22 @@ const Builder = () => {
       }
       window.print();
     }, 250);
+  };
+
+  const handleExportHtml = async () => {
+    await saveBeforeExport();
+    const html = buildExportHtml();
+    downloadBlob(new Blob([html], { type: "text/html" }), `${data.fullName || "cv"}.html`);
+    toast.success("HTML downloaded");
+  };
+
+  const handleExportDocx = async () => {
+    await saveBeforeExport();
+    const html = buildExportHtml();
+    // Word-compatible HTML container — opens cleanly in MS Word & Google Docs
+    const wordDoc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">${html.replace(/^<!doctype html>/i, "").replace(/<\/?html[^>]*>/gi, "")}</html>`;
+    downloadBlob(new Blob(["\ufeff", wordDoc], { type: "application/msword" }), `${data.fullName || "cv"}.doc`);
+    toast.success("Document downloaded");
   };
 
   // Update array sections directly
@@ -520,9 +555,24 @@ const Builder = () => {
                 {saving ? "Saving…" : lastSavedAt ? "Saved ✓" : "Save"}
               </Button>
             )}
-            <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
-              <Download className="w-4 h-4 mr-2" /> Export PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-gradient-primary shadow-glow">
+                  <Download className="w-4 h-4 mr-2" /> Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleExportPdf}>
+                  <FileText className="w-4 h-4 mr-2" /> PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportHtml}>
+                  <FileCode className="w-4 h-4 mr-2" /> HTML
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportDocx}>
+                  <FileType className="w-4 h-4 mr-2" /> Word document (.doc)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </nav>
@@ -643,7 +693,11 @@ const Builder = () => {
 
         return (
           <div className="flex print:block lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
-            <EditorRail templatesPanel={templatesPanel} editorRef={editableRef} />
+            <EditorRail
+              templatesPanel={templatesPanel}
+              editorRef={editableRef}
+              addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, loadSample, clearAll }}
+            />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden lg:overflow-y-auto lg:h-full">
 
@@ -672,28 +726,6 @@ const Builder = () => {
                 }} />
               </div>
             )}
-
-            {/* Floating add-section toolbar */}
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
-              <span className="text-xs font-medium text-muted-foreground mr-1">Add to CV:</span>
-              <Button size="sm" variant="outline" onClick={addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
-              <Button size="sm" variant="outline" onClick={addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
-              <Button size="sm" variant="outline" onClick={addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
-              <Button size="sm" variant="outline" onClick={addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
-              <Button size="sm" variant="outline" onClick={addProject}><Plus className="w-3 h-3 mr-1" />Project</Button>
-              <span className="mx-1 h-5 w-px bg-border" />
-              <Button size="sm" variant="outline" onClick={() => addCustomSection("left")}>
-                <Plus className="w-3 h-3 mr-1" />Section ← left
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => addCustomSection("right")}>
-                <Plus className="w-3 h-3 mr-1" />Section right →
-              </Button>
-              <span className="ml-auto flex items-center gap-2 text-xs">
-                <button onClick={loadSample} className="text-primary hover:underline">Load sample</button>
-                <span className="text-muted-foreground">·</span>
-                <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
-              </span>
-            </div>
 
             <p className="text-xs text-muted-foreground text-center">
               ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
