@@ -289,10 +289,12 @@ function attachHoverFrame(
     onInsertBelow: () => void;
     accent?: string;                  // hsl color string
     bgTint?: string;                  // hover background color
+    compact?: boolean;                // smaller, inset buttons (used for subsections)
   }
 ) {
   const accent = opts.accent || "hsl(var(--primary))";
   const bgTint = opts.bgTint || "hsl(var(--primary) / 0.06)";
+  const compact = !!opts.compact;
 
   // Ensure positioning context for absolutely-placed buttons
   const computed = window.getComputedStyle(el);
@@ -308,6 +310,12 @@ function attachHoverFrame(
   const originalBg = el.style.backgroundColor;
   el.setAttribute("data-cv-orig-bg", originalBg);
 
+  const size = compact ? 18 : 22;
+  // Section buttons sit OUTSIDE the box (-10px); subsection buttons sit INSIDE
+  // the box (+4px) so they never collide with the section-level buttons of
+  // the parent or of an adjacent subsection.
+  const offset = compact ? "4px" : "-10px";
+
   const makePlus = (position: "top" | "bottom", onClick: () => void) => {
     const b = document.createElement("button");
     b.setAttribute(TOOL_ATTR, position === "top" ? "plus-above" : "plus-below");
@@ -315,13 +323,13 @@ function attachHoverFrame(
     b.title = position === "top" ? `Add ${opts.label} above` : `Add ${opts.label} below`;
     b.innerHTML = PLUS_ICON;
     const corner = position === "top"
-      ? "top: -10px; right: -10px;"
-      : "bottom: -10px; left: -10px;";
+      ? `top: ${offset}; right: ${offset};`
+      : `bottom: ${offset}; left: ${offset};`;
     b.style.cssText = [
       "position: absolute",
       corner,
-      "width: 22px",
-      "height: 22px",
+      `width: ${size}px`,
+      `height: ${size}px`,
       "display: flex",
       "align-items: center",
       "justify-content: center",
