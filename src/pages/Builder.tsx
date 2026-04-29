@@ -16,12 +16,37 @@ const HAS_DATA_KEY = "cv-builder-touched";
 interface UserTemplate { id: string; name: string; html: string; }
 
 const Builder = () => {
+  const { user, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTemplate = (searchParams.get("template") as TemplateId) || "modern";
-  const [template, setTemplate] = useState<TemplateId>(initialTemplate);
+  const initialTemplate = searchParams.get("template") || "modern";
+  // template can be a built-in TemplateId OR a user template id (uuid). We treat it as string.
+  const [template, setTemplate] = useState<string>(initialTemplate);
   const [showTemplates, setShowTemplates] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+  const [showTplDialog, setShowTplDialog] = useState(false);
+  const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const editableRef = useRef<HTMLDivElement>(null);
+
+  const activeUserTemplate = userTemplates.find(t => t.id === template);
+  const userTemplateHtml = activeUserTemplate?.html;
+
+  const fetchUserTemplates = useCallback(async () => {
+    if (!user) { setUserTemplates([]); return; }
+    const { data, error } = await supabase.from("user_templates").select("id,name,html").eq("user_id", user.id).order("created_at", { ascending: false });
+    if (error) { console.error(error); return; }
+    setUserTemplates(data || []);
+  }, [user]);
+
+  useEffect(() => { fetchUserTemplates(); }, [fetchUserTemplates]);
+
+  const deleteUserTemplate = async (id: string) => {
+    if (!confirm("Delete this template?")) return;
+    const { error } = await supabase.from("user_templates").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Template deleted");
+    if (template === id) handleTemplateChange("modern");
+    fetchUserTemplates();
+  };
 
   const [data, setData] = useState<CVData>(() => {
     try {
