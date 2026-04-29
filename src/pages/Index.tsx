@@ -14,26 +14,24 @@ const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] =
   { label: "Academic",     icon: "🎓", ids: ["academic", "classic", "elegant", "executive"] },
 ];
 
-const EXPLORE = [
-  { id: "modern",       title: "Modern",       bg: "from-violet-200 via-fuchsia-200 to-pink-200" },
-  { id: "professional", title: "Professional", bg: "from-sky-200 via-indigo-200 to-violet-200" },
-  { id: "creative",     title: "Creative",     bg: "from-orange-200 via-pink-200 to-rose-200" },
-  { id: "elegant",      title: "Elegant",      bg: "from-amber-100 via-stone-200 to-neutral-200" },
-  { id: "designer",     title: "Designer",     bg: "from-rose-200 via-pink-200 to-amber-100" },
-  { id: "executive",    title: "Executive",    bg: "from-emerald-200 via-teal-200 to-cyan-200" },
-  { id: "tech",         title: "Tech",         bg: "from-cyan-200 via-sky-200 to-blue-200" },
-  { id: "bold",         title: "Bold",         bg: "from-red-200 via-rose-200 to-pink-200" },
-] as const;
-
 const Index = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState("All");
 
-  const onSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/templates${query ? `?q=${encodeURIComponent(query)}` : ""}`);
-  };
+  const filtered = useMemo(() => {
+    const cat = CATEGORIES.find(c => c.label === activeCat);
+    let list = TEMPLATES;
+    if (cat && cat.ids !== "all") list = list.filter(t => (cat.ids as TemplateId[]).includes(t.id));
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    }
+    return list;
+  }, [activeCat, query]);
+
+  const onSearch = (e: React.FormEvent) => e.preventDefault();
+
 
   return (
     <div className="min-h-screen bg-background">
