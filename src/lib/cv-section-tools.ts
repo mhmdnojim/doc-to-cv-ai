@@ -191,7 +191,20 @@ export function cleanupTools(root: HTMLElement) {
     el.style.outline = "";
     el.style.outlineColor = "";
     el.style.outlineOffset = "";
+    // Restore the original background that hover may have replaced
+    const orig = el.getAttribute("data-cv-orig-bg");
+    if (orig !== null) {
+      el.style.backgroundColor = orig;
+      el.removeAttribute("data-cv-orig-bg");
+    }
     el.removeAttribute("draggable");
+  });
+  // Restore original padding on indented subsection containers
+  root.querySelectorAll<HTMLElement>("[data-cv-indented]").forEach(el => {
+    const orig = el.getAttribute("data-cv-orig-padding-left") || "";
+    el.style.paddingLeft = orig;
+    el.removeAttribute("data-cv-indented");
+    el.removeAttribute("data-cv-orig-padding-left");
   });
 }
 
@@ -275,20 +288,25 @@ function attachHoverFrame(
     onInsertAbove: () => void;
     onInsertBelow: () => void;
     accent?: string;                  // hsl color string
+    bgTint?: string;                  // hover background color
   }
 ) {
   const accent = opts.accent || "hsl(var(--primary))";
+  const bgTint = opts.bgTint || "hsl(var(--primary) / 0.06)";
 
   // Ensure positioning context for absolutely-placed buttons
   const computed = window.getComputedStyle(el);
   if (computed.position === "static") el.style.position = "relative";
 
   // Hover frame: a transparent border that lights up on hover.
-  // Apply via inline outline so we don't disturb layout.
   el.style.transition = (el.style.transition ? el.style.transition + ", " : "") + "outline-color .15s, background-color .15s";
   el.style.outline = `1px dashed transparent`;
   el.style.outlineOffset = "4px";
   el.style.borderRadius = el.style.borderRadius || "4px";
+
+  // Remember the original background so we can restore it precisely on mouseleave.
+  const originalBg = el.style.backgroundColor;
+  el.setAttribute("data-cv-orig-bg", originalBg);
 
   const makePlus = (position: "top" | "bottom", onClick: () => void) => {
     const b = document.createElement("button");
@@ -296,8 +314,6 @@ function attachHoverFrame(
     b.setAttribute("contenteditable", "false");
     b.title = position === "top" ? `Add ${opts.label} above` : `Add ${opts.label} below`;
     b.innerHTML = PLUS_ICON;
-    // top → upper-right corner, bottom → lower-left corner.
-    // Pulled outside the box (negative offsets) so they don't overlap content.
     const corner = position === "top"
       ? "top: -10px; right: -10px;"
       : "bottom: -10px; left: -10px;";
@@ -331,15 +347,25 @@ function attachHoverFrame(
   el.appendChild(plusTop);
   el.appendChild(plusBottom);
 
-  el.addEventListener("mouseenter", () => {
-    el.style.outlineColor = accent.replace(")", " / 0.5)").replace("hsl(var", "hsl(var");
-    // Fallback for plain colors
-    if (!el.style.outlineColor) el.style.outlineColor = accent;
+  // Use mouseover/mouseout (which bubble) so we can detect when an inner
+  // hover-framed element (e.g. a subsection) takes over — and clear our own
+  // highlight to avoid double-highlighting nested elements.
+  const isOverChild = (e: MouseEvent) => {
+    const related = e.relatedTarget as Node | null;
+    return related && el.contains(related);
+  };
+
+  el.addEventListener("mouseover", (e) => {
+    e.stopPropagation();
+    el.style.outlineColor = accent;
+    el.style.backgroundColor = bgTint;
     plusTop.style.opacity = "1";
     plusBottom.style.opacity = "1";
   });
-  el.addEventListener("mouseleave", () => {
+  el.addEventListener("mouseout", (e) => {
+    if (isOverChild(e)) return;
     el.style.outlineColor = "transparent";
+    el.style.backgroundColor = originalBg;
     plusTop.style.opacity = "0";
     plusBottom.style.opacity = "0";
   });
@@ -433,9 +459,21 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     }, 30);
   };
 
+  // Indent the subsection container so children are visually nested under
+  // the parent section heading. Mark it so cleanup can revert.
+  if (!container.hasAttribute("data-cv-indented")) {
+    container.setAttribute("data-cv-indented", "1");
+    container.setAttribute("data-cv-orig-padding-left", container.style.paddingLeft || "");
+    const cur = parseFloat(window.getComputedStyle(container).paddingLeft || "0") || 0;
+    container.style.paddingLeft = `${cur + 16}px`;
+  }
+
   items.forEach((item) => {
     attachHoverFrame(item, {
       label: "subsection",
+      // Use a warmer accent + tint so subsections read as nested, not duplicated.
+      accent: "hsl(var(--accent-foreground, var(--primary)))",
+      bgTint: "hsl(var(--muted) / 0.5)",
       onInsertAbove: () => insertSubAt(item, "before"),
       onInsertBelow: () => insertSubAt(item, "after"),
     });
