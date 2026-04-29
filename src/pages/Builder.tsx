@@ -65,7 +65,7 @@ const Builder = () => {
     return () => clearTimeout(t);
   }, [data, pendingFocusText]);
 
-  // Inject "+" buttons next to section headings inside the editable CV
+  // Inject "+" and "✕" controls next to section headings inside the editable CV
   useEffect(() => {
     const root = editableRef.current;
     if (!root) return;
@@ -79,23 +79,92 @@ const Builder = () => {
         projects: addProject,
         contact: addContact, "contact info": addContact, "get in touch": addContact,
       };
+
+      const makeBtn = (svg: string, title: string, bg: string, onClick: (e: Event) => void) => {
+        const b = document.createElement("button");
+        b.setAttribute("data-section-ctrl", "1");
+        b.setAttribute("contenteditable", "false");
+        b.title = title;
+        b.innerHTML = svg;
+        b.style.cssText = `display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;border-radius:9999px;background:${bg};color:white;cursor:pointer;border:none;vertical-align:middle;flex-shrink:0;`;
+        b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); onClick(ev); };
+        return b;
+      };
+      const plusSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
+      const xSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+
       headings.forEach(h => {
-        if (h.querySelector("[data-add-btn]")) return;
+        if (h.querySelector("[data-section-ctrl]")) return;
         const text = (h.textContent || "").trim().toLowerCase().replace(/[\/\\]+/g, "").replace(/^\W+|\W+$/g, "");
         const key = Object.keys(sectionMap).find(k => text.includes(k));
-        if (!key) return;
-        const btn = document.createElement("button");
-        btn.setAttribute("data-add-btn", "1");
-        btn.setAttribute("contenteditable", "false");
-        btn.title = `Add ${key}`;
-        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
-        btn.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:8px;border-radius:9999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));cursor:pointer;border:none;vertical-align:middle;flex-shrink:0;";
-        btn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); sectionMap[key](); };
-        h.appendChild(btn);
+
+        // "+" button — only for known sections (adds a list item)
+        if (key) {
+          h.appendChild(makeBtn(plusSvg, `Add ${key}`, "hsl(var(--primary))", () => sectionMap[key]()));
+        }
+
+        // "✕" button — delete the entire section block. Available for ANY heading (built-in + custom).
+        h.appendChild(makeBtn(xSvg, "Delete section", "hsl(var(--destructive))", () => {
+          if (!confirm(`Delete this section ("${(h.textContent || "").replace(/\s+/g, " ").trim()}")?`)) return;
+          // Remove the closest <section>; otherwise remove the heading + following siblings until next heading
+          const section = h.closest("section");
+          if (section) { section.remove(); return; }
+          const parent = h.parentElement;
+          if (!parent) { h.remove(); return; }
+          const toRemove: Element[] = [h];
+          let sib = h.nextElementSibling;
+          while (sib && !["H2", "H3"].includes(sib.tagName)) {
+            toRemove.push(sib);
+            sib = sib.nextElementSibling;
+          }
+          toRemove.forEach(el => el.remove());
+        }));
       });
     }, 50);
     return () => clearTimeout(t);
   }, [data, template]);
+
+  // Insert a custom section into the left sidebar or right main area of the editable CV
+  const addCustomSection = (side: "left" | "right") => {
+    const root = editableRef.current;
+    if (!root) { toast.error("Open the CV first"); return; }
+    // Heuristic: find a vertical column that contains existing headings
+    const candidates = Array.from(root.querySelectorAll<HTMLElement>("aside, main, section, div"));
+    // Score each candidate by how far its center is from the left edge
+    const scored = candidates
+      .filter(el => {
+        const r = el.getBoundingClientRect();
+        return r.width > 80 && r.height > 200; // ignore tiny wrappers
+      })
+      .map(el => {
+        const r = el.getBoundingClientRect();
+        const rootRect = root.getBoundingClientRect();
+        const relX = (r.left + r.width / 2 - rootRect.left) / rootRect.width;
+        return { el, relX, area: r.width * r.height };
+      });
+    // Pick smallest column on the requested side
+    let target: HTMLElement | null = null;
+    if (side === "left") {
+      const left = scored.filter(s => s.relX < 0.5).sort((a, b) => a.area - b.area)[0];
+      target = left?.el || null;
+    } else {
+      const right = scored.filter(s => s.relX >= 0.5).sort((a, b) => a.area - b.area)[0];
+      target = right?.el || null;
+    }
+    // Fallback: append to root
+    if (!target) target = root.firstElementChild as HTMLElement || root;
+
+    const sec = document.createElement("section");
+    sec.style.cssText = "margin-top:1.25rem;";
+    sec.innerHTML = `
+      <h2 style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:0.85rem;margin-bottom:0.5rem;border-bottom:1px solid currentColor;padding-bottom:0.25rem;opacity:0.95;">New Section</h2>
+      <p style="font-size:0.85rem;line-height:1.5;opacity:0.9;">Click here to write the content of your new section. You can list anything: certifications, awards, hobbies, references, volunteering…</p>
+    `;
+    target.appendChild(sec);
+    setPendingFocusText("New Section");
+    toast.success(`Custom section added to the ${side} side`);
+  };
+
 
   const handleTemplateChange = (t: TemplateId) => {
     setTemplate(t);
