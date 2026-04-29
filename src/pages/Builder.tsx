@@ -5,18 +5,27 @@ import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
 
-interface UserTemplate { id: string; name: string; html: string; }
+interface UserTemplate {
+  id: string;
+  name: string;
+  html: string;
+  user_id: string;
+  is_disabled: boolean;
+  is_public: boolean;
+}
 
 const Builder = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTemplate = searchParams.get("template") || "modern";
   // template can be a built-in TemplateId OR a user template id (uuid). We treat it as string.
@@ -32,11 +41,14 @@ const Builder = () => {
   const userTemplateHtml = activeUserTemplate?.html;
 
   const fetchUserTemplates = useCallback(async () => {
-    if (!user) { setUserTemplates([]); return; }
-    const { data, error } = await supabase.from("user_templates").select("id,name,html").eq("user_id", user.id).order("created_at", { ascending: false });
+    // Load all visible (public + own + admin) templates
+    const { data, error } = await supabase
+      .from("user_templates")
+      .select("id,name,html,user_id,is_disabled,is_public")
+      .order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setUserTemplates(data || []);
-  }, [user]);
+  }, [user, isAdmin]);
 
   useEffect(() => { fetchUserTemplates(); }, [fetchUserTemplates]);
 
@@ -46,6 +58,17 @@ const Builder = () => {
     if (error) { toast.error(error.message); return; }
     toast.success("Template deleted");
     if (template === id) handleTemplateChange("modern");
+    fetchUserTemplates();
+  };
+
+  const toggleDisableTemplate = async (t: UserTemplate) => {
+    const next = !t.is_disabled;
+    const { error } = await supabase
+      .from("user_templates")
+      .update({ is_disabled: next })
+      .eq("id", t.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next ? "Template disabled" : "Template enabled");
     fetchUserTemplates();
   };
 
@@ -376,10 +399,12 @@ const Builder = () => {
                 })}
               </div>
 
-              {/* My templates */}
+              {/* Community templates */}
               <div className="mt-5 pt-4 border-t border-border">
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">My templates</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Community templates {isAdmin && <span className="ml-1 text-[10px] text-primary">(admin)</span>}
+                  </h4>
                   <button
                     onClick={() => user ? (setEditingTemplate(null), setShowTplDialog(true)) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
                     className="text-primary hover:text-primary/80"
@@ -388,16 +413,19 @@ const Builder = () => {
                     <ImagePlus className="w-4 h-4" />
                   </button>
                 </div>
-                {!user ? (
-                  <p className="text-[11px] text-muted-foreground px-1"><Link to="/auth" className="text-primary hover:underline">Sign in</Link> to upload your own templates.</p>
-                ) : userTemplates.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground px-1">No custom templates yet. Click <ImagePlus className="w-3 h-3 inline" /> to upload a screenshot.</p>
+                {userTemplates.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground px-1">
+                    No community templates yet. {user ? <>Click <ImagePlus className="w-3 h-3 inline" /> to share one.</> : <><Link to="/auth" className="text-primary hover:underline">Sign in</Link> to share one.</>}
+                  </p>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
                     {userTemplates.map(t => {
                       const active = t.id === template;
+                      const isOwner = user?.id === t.user_id;
+                      const canModify = isOwner || isAdmin;
+                      const ownerLabel = isOwner ? "you" : `user ${t.user_id.slice(0, 6)}`;
                       return (
-                        <div key={t.id} className="relative group">
+                        <div key={t.id} className={`relative group ${t.is_disabled ? "opacity-50" : ""}`}>
                           <button
                             onClick={() => handleTemplateChange(t.id)}
                             className={`block w-full rounded-lg overflow-hidden border-2 transition-base ${active ? "border-primary shadow-glow" : "border-border hover:border-primary/50"}`}
@@ -406,28 +434,49 @@ const Builder = () => {
                               <div className="absolute inset-0 origin-top-left scale-[0.13]">
                                 <CVPreview data={data} template={t.id} userTemplateHtml={t.html} />
                               </div>
+                              {t.is_disabled && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                                  <span className="text-[10px] font-semibold uppercase tracking-wide text-destructive bg-card px-2 py-0.5 rounded">Disabled</span>
+                                </div>
+                              )}
                             </div>
-                            <div className="px-2 py-1.5 text-[11px] font-medium text-left bg-card flex items-center justify-between">
-                              <span className="truncate">{t.name}</span>
-                              {active && <Check className="w-3 h-3 text-primary shrink-0" />}
+                            <div className="px-2 py-1.5 bg-card text-left">
+                              <div className="flex items-center justify-between text-[11px] font-medium">
+                                <span className="truncate">{t.name}</span>
+                                {active && <Check className="w-3 h-3 text-primary shrink-0" />}
+                              </div>
+                              <div className="text-[9px] text-muted-foreground truncate">by {ownerLabel}</div>
                             </div>
                           </button>
-                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-base">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setEditingTemplate(t); setShowTplDialog(true); }}
-                              className="p-1 rounded-full bg-card/90 text-primary hover:bg-card"
-                              title="Replace screenshot"
-                            >
-                              <ImagePlus className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
-                              className="p-1 rounded-full bg-card/90 text-destructive hover:bg-card"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
+                          {canModify && (
+                            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-base">
+                              {isOwner && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setEditingTemplate(t); setShowTplDialog(true); }}
+                                  className="p-1 rounded-full bg-card/90 text-primary hover:bg-card"
+                                  title="Replace screenshot"
+                                >
+                                  <ImagePlus className="w-3 h-3" />
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); toggleDisableTemplate(t); }}
+                                  className="p-1 rounded-full bg-card/90 text-foreground hover:bg-card"
+                                  title={t.is_disabled ? "Enable template" : "Disable template"}
+                                >
+                                  {t.is_disabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
+                                className="p-1 rounded-full bg-card/90 text-destructive hover:bg-card"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
