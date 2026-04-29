@@ -97,6 +97,28 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
     }
   };
 
+  const setFontFamily = (family: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      span.style.fontFamily = family;
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+        savedRange.current = newRange.cloneRange();
+      } catch (e) { console.error(e); }
+    } else if (editorRef.current) {
+      editorRef.current.style.fontFamily = family;
+      toast.success("Font applied to whole CV");
+    }
+  };
+
   const generateMagic = async (mode?: "improve" | "shorten" | "expand") => {
     const selection = lastSelection.trim();
     if (!selection && !prompt.trim()) {
@@ -199,6 +221,39 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
                 <p className="text-xs text-muted-foreground">
                   Select text in the CV, then format it here.
                 </p>
+
+                <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Font family</label>
+                  <select
+                    onChange={(e) => setFontFamily(e.target.value)}
+                    defaultValue=""
+                    className="mt-1.5 w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+                  >
+                    <option value="" disabled>Choose a font…</option>
+                    <optgroup label="Sans-serif">
+                      <option value="Inter, system-ui, sans-serif">Inter</option>
+                      <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
+                      <option value="Arial, sans-serif">Arial</option>
+                      <option value="'Roboto', sans-serif">Roboto</option>
+                      <option value="'Open Sans', sans-serif">Open Sans</option>
+                      <option value="'Lato', sans-serif">Lato</option>
+                      <option value="'Montserrat', sans-serif">Montserrat</option>
+                      <option value="'Poppins', sans-serif">Poppins</option>
+                    </optgroup>
+                    <optgroup label="Serif">
+                      <option value="Georgia, serif">Georgia</option>
+                      <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                      <option value="'Playfair Display', serif">Playfair Display</option>
+                      <option value="'Merriweather', serif">Merriweather</option>
+                      <option value="Garamond, serif">Garamond</option>
+                    </optgroup>
+                    <optgroup label="Monospace">
+                      <option value="'Courier New', Courier, monospace">Courier New</option>
+                      <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                    </optgroup>
+                  </select>
+                  <p className="text-[10px] text-muted-foreground mt-1">Select text first, or apply to whole CV.</p>
+                </div>
 
                 <div>
                   <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Style</label>

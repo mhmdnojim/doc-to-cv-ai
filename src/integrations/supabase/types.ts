@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_cvs: {
+        Row: {
+          blank_pages: Json
+          created_at: string
+          custom_html: string | null
+          data: Json
+          id: string
+          manual_pages: number
+          name: string
+          template: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blank_pages?: Json
+          created_at?: string
+          custom_html?: string | null
+          data?: Json
+          id?: string
+          manual_pages?: number
+          name?: string
+          template?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blank_pages?: Json
+          created_at?: string
+          custom_html?: string | null
+          data?: Json
+          id?: string
+          manual_pages?: number
+          name?: string
+          template?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
