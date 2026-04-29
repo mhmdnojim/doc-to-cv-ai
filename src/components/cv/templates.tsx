@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Globe } from "lucide-react";
 interface Props { data: CVData }
 
 export const ModernTemplate = ({ data }: Props) => (
-  <div className="flex min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <aside className="w-[260px] bg-gradient-to-b from-indigo-600 to-violet-600 text-white p-8">
       {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full mb-6 object-cover border-4 border-white/20" />}
       <h1 className="text-2xl font-bold leading-tight">{data.fullName || "Your Name"}</h1>
@@ -92,7 +92,7 @@ export const ModernTemplate = ({ data }: Props) => (
 );
 
 export const ClassicTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 p-12 font-serif">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 p-12 font-serif">
     <header className="text-center border-b-2 border-slate-900 pb-4 mb-6">
       <h1 className="text-4xl font-bold tracking-tight">{data.fullName || "Your Name"}</h1>
       <p className="text-lg text-slate-700 mt-1">{data.jobTitle}</p>
@@ -150,7 +150,7 @@ export const ClassicTemplate = ({ data }: Props) => (
 );
 
 export const MinimalTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-zinc-900 p-16 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-zinc-900 p-16 font-sans">
     <h1 className="text-5xl font-light tracking-tight">{data.fullName || "Your Name"}</h1>
     <p className="text-zinc-500 mt-2 text-lg">{data.jobTitle}</p>
     <p className="text-xs text-zinc-500 mt-4 uppercase tracking-widest">
@@ -199,7 +199,7 @@ export const MinimalTemplate = ({ data }: Props) => (
 );
 
 export const CreativeTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-gradient-to-br from-pink-500 via-orange-500 to-amber-500 text-white p-10">
       <h1 className="text-5xl font-black">{data.fullName || "Your Name"}</h1>
       <p className="text-xl mt-2 font-light">{data.jobTitle}</p>
@@ -253,7 +253,7 @@ export const CreativeTemplate = ({ data }: Props) => (
 );
 
 export const ExecutiveTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 p-12" style={{ fontFamily: "Georgia, serif" }}>
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 p-12" style={{ fontFamily: "Georgia, serif" }}>
     <header className="border-b-4 border-emerald-800 pb-5 mb-6">
       <h1 className="text-4xl font-bold text-emerald-900">{data.fullName || "Your Name"}</h1>
       <p className="text-lg text-emerald-700 italic mt-1">{data.jobTitle}</p>
@@ -283,7 +283,7 @@ export const ExecutiveTemplate = ({ data }: Props) => (
 );
 
 export const TechTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 p-10 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 p-10 font-sans">
     <header className="mb-6">
       <div className="text-xs text-cyan-600 mb-1" style={{ fontFamily: "monospace" }}>~/ {data.fullName?.toLowerCase().replace(/\s+/g, "_") || "your_name"}.cv</div>
       <h1 className="text-3xl font-bold">{data.fullName || "Your Name"}</h1>
@@ -332,7 +332,7 @@ export const TechTemplate = ({ data }: Props) => (
 );
 
 export const ElegantTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-stone-900" style={{ fontFamily: "Georgia, serif" }}>
+  <div className="min-h-[297mm] w-[210mm] bg-white text-stone-900" style={{ fontFamily: "Georgia, serif" }}>
     <header className="bg-stone-100 px-12 py-10 flex items-center gap-8 border-b-4 border-stone-800">
       {data.photo && <img src={data.photo} alt="" className="w-28 h-28 rounded-full object-cover ring-4 ring-white shadow-md" />}
       <div>
@@ -365,7 +365,7 @@ export const ElegantTemplate = ({ data }: Props) => (
 );
 
 export const ProfessionalTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-slate-900 text-white p-10 flex items-center gap-6">
       {data.photo && <img src={data.photo} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-white" />}
       <div className="flex-1">
@@ -409,7 +409,7 @@ export const ProfessionalTemplate = ({ data }: Props) => (
 );
 
 export const CorporateTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans flex">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans flex">
     <aside className="w-[280px] bg-blue-950 text-white p-8">
       {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-blue-800" />}
       <h1 className="text-2xl font-bold text-center">{data.fullName || "Your Name"}</h1>
@@ -443,7 +443,7 @@ export const CorporateTemplate = ({ data }: Props) => (
 );
 
 export const DesignerTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-rose-100 p-10 flex items-center gap-8 relative">
       {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full object-cover ring-8 ring-white shadow-lg" />}
       <div>
@@ -481,7 +481,7 @@ export const DesignerTemplate = ({ data }: Props) => (
 );
 
 export const AcademicTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-neutral-900 p-12" style={{ fontFamily: "'Times New Roman', serif" }}>
+  <div className="min-h-[297mm] w-[210mm] bg-white text-neutral-900 p-12" style={{ fontFamily: "'Times New Roman', serif" }}>
     <header className="text-center mb-6">
       <h1 className="text-3xl font-bold tracking-wide">{data.fullName || "Your Name"}</h1>
       <p className="text-sm mt-1">{data.jobTitle}</p>
@@ -515,7 +515,7 @@ export const AcademicTemplate = ({ data }: Props) => (
 );
 
 export const CompactTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-gray-900 p-8 font-sans text-[13px]">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-gray-900 p-8 font-sans text-[13px]">
     <header className="border-b border-gray-300 pb-3 mb-4 flex justify-between items-end">
       <div>
         <h1 className="text-2xl font-bold">{data.fullName || "Your Name"}</h1>
@@ -552,7 +552,7 @@ export const CompactTemplate = ({ data }: Props) => (
 );
 
 export const BoldTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-rose-600 text-white p-12">
       <h1 className="text-6xl font-black uppercase leading-none tracking-tight">{data.fullName || "Your Name"}</h1>
       <p className="text-xl mt-3 font-light">{data.jobTitle}</p>
@@ -592,7 +592,7 @@ export const BoldTemplate = ({ data }: Props) => (
 );
 
 export const PhotoTemplate = ({ data }: Props) => (
-  <div className="min-h-[1123px] w-[794px] bg-white text-slate-900 font-sans">
+  <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="relative h-[280px] bg-gradient-to-br from-teal-700 to-emerald-800 text-white">
       <div className="absolute inset-0 flex items-center gap-8 p-10">
         {data.photo && <img src={data.photo} alt="" className="w-44 h-44 rounded-full object-cover ring-4 ring-white/30 shadow-2xl" />}
