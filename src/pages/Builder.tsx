@@ -25,6 +25,7 @@ const Builder = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [showTplDialog, setShowTplDialog] = useState(false);
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
@@ -380,7 +381,7 @@ const Builder = () => {
                 <div className="flex items-center justify-between mb-2 px-1">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">My templates</h4>
                   <button
-                    onClick={() => user ? setShowTplDialog(true) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
+                    onClick={() => user ? (setEditingTemplate(null), setShowTplDialog(true)) : (toast.info("Sign in to save your templates"), window.location.assign("/auth"))}
                     className="text-primary hover:text-primary/80"
                     title="Upload screenshot to create a template"
                   >
@@ -411,13 +412,22 @@ const Builder = () => {
                               {active && <Check className="w-3 h-3 text-primary shrink-0" />}
                             </div>
                           </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
-                            className="absolute top-1 right-1 p-1 rounded-full bg-card/90 text-destructive opacity-0 group-hover:opacity-100 transition-base"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-base">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingTemplate(t); setShowTplDialog(true); }}
+                              className="p-1 rounded-full bg-card/90 text-primary hover:bg-card"
+                              title="Replace screenshot"
+                            >
+                              <ImagePlus className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); deleteUserTemplate(t.id); }}
+                              className="p-1 rounded-full bg-card/90 text-destructive hover:bg-card"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -503,8 +513,9 @@ const Builder = () => {
       {/* Upload-template dialog */}
       <TemplateUploadDialog
         open={showTplDialog}
-        onOpenChange={setShowTplDialog}
+        onOpenChange={(v) => { setShowTplDialog(v); if (!v) setEditingTemplate(null); }}
         onCreated={fetchUserTemplates}
+        editing={editingTemplate}
       />
 
       {/* Print-only area */}
