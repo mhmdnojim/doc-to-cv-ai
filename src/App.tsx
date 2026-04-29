@@ -10,6 +10,7 @@ import Builder from "./pages/Builder.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Admin from "./pages/Admin.tsx";
+import PagesChecker from "./pages/PagesChecker.tsx";
 
 const queryClient = new QueryClient();
 
