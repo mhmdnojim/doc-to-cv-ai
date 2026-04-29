@@ -51,7 +51,8 @@ export type TemplateId =
   | "elegant" | "professional" | "corporate" | "designer" | "academic"
   | "compact" | "bold" | "photo"
   | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva"
-  | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez";
+  | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez"
+  | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -87,6 +88,12 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "choconta", name: "Choconta", description: "Botanical leaves with script accents", accent: "from-[#cfe0c8] to-[#5a7a5a]" },
   { id: "nasser", name: "Nasser", description: "Mint sage sidebar with script header", accent: "from-[#cfdcc8] to-[#3a5a3a]" },
   { id: "perez", name: "Pérez", description: "Soft lavender sidebar, modern feminine", accent: "from-[#dcd2ea] to-[#5a3a8a]" },
+  { id: "reyes", name: "Reyes", description: "Coral header with wave divider", accent: "from-[#e85d4a] to-[#c4391f]" },
+  { id: "tanaka", name: "Tanaka", description: "Minimal Japanese-inspired with red accent", accent: "from-[#a23b2a] to-[#5a1f15]" },
+  { id: "okonkwo", name: "Okonkwo", description: "Earth tones with terracotta circle accent", accent: "from-[#c87b4a] to-[#5a3520]" },
+  { id: "petrov", name: "Petrov", description: "Dark mode developer with neon cyan", accent: "from-cyan-400 to-cyan-700" },
+  { id: "dubois", name: "Dubois", description: "Centered French elegance with gold rules", accent: "from-[#b8924a] to-[#7a5e2a]" },
+  { id: "hassan", name: "Hassan", description: "Warm beige with arch dome header", accent: "from-[#d9c4a3] to-[#6b4f2c]" },
 ];
 
 export const EMPTY_CV: CVData = {
