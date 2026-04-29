@@ -5,9 +5,8 @@ import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
-import { LoginDialog } from "@/components/auth/LoginDialog";
 import { useAuth } from "@/hooks/useAuth";
-import loginCube from "@/assets/login-cube.png";
+import { AuthPill } from "@/components/AuthPill";
 
 const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] = [
   { label: "All",          icon: "✨", ids: "all" },
@@ -20,10 +19,9 @@ const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] =
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [showUpload, setShowUpload] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
 
   const filtered = useMemo(() => {
@@ -46,31 +44,7 @@ const Index = () => {
       <nav className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            {(() => {
-              const avatar = (user?.user_metadata as any)?.avatar_url || (user?.user_metadata as any)?.picture;
-              const displayName = (user?.user_metadata as any)?.full_name
-                || (user?.user_metadata as any)?.name
-                || user?.email?.split("@")[0];
-              return (
-                <button
-                  onClick={() => (user ? signOut() : setShowLogin(true))}
-                  title={user ? `Sign out ${displayName}` : "Log in"}
-                  aria-label={user ? "Sign out" : "Log in"}
-                  className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-border hover:shadow-glow hover:border-primary/40 transition-base bg-card"
-                >
-                  <span className="w-8 h-8 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
-                    {user && avatar ? (
-                      <img src={avatar} alt={displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    ) : (
-                      <img src={loginCube} alt="Log in" className="w-full h-full object-cover" />
-                    )}
-                  </span>
-                  <span className="text-sm font-medium truncate max-w-[140px]">
-                    {user ? displayName : "Log in"}
-                  </span>
-                </button>
-              );
-            })()}
+            <AuthPill />
           </div>
         </div>
       </nav>
@@ -195,7 +169,7 @@ const Index = () => {
         onOpenChange={setShowUpload}
         onCreated={(id) => { if (id) navigate(`/builder?template=${id}`); }}
       />
-      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
+      
     </div>
   );
 };

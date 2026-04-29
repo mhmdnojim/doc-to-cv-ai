@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TEMPLATES, SAMPLE_CV } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { ArrowLeft } from "lucide-react";
+import { AuthPill } from "@/components/AuthPill";
 
 const Templates = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Templates = () => {
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 text-sm"><ArrowLeft className="w-4 h-4" /> Back</Link>
           <h1 className="font-semibold">Templates</h1>
-          <div className="w-16" />
+          <AuthPill />
         </div>
       </nav>
 
