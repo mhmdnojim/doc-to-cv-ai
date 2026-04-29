@@ -139,6 +139,11 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
   };
 
   const generateMagic = async (mode?: "improve" | "shorten" | "expand") => {
+    if (!user) {
+      toast.info("Please sign in to use Magic Write");
+      window.location.assign("/auth");
+      return;
+    }
     const selection = lastSelection.trim();
     if (!selection && !prompt.trim()) {
       toast.error("Describe what you want to write");
