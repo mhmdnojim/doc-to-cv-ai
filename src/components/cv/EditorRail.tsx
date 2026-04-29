@@ -21,7 +21,8 @@ const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
   { key: "magic",     label: "Magic Write", icon: Sparkles },
 ];
 
-const FONT_SIZES = [10, 11, 12, 13, 14, 16, 18, 20, 24, 28, 32, 40, 48];
+const MIN_FONT = 8;
+const MAX_FONT = 72;
 
 export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
   const [active, setActive] = useState<RailKey | null>("templates");
