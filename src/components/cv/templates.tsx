@@ -1469,20 +1469,28 @@ export const OkonkwoTemplate = ({ data }: Props) => (
       <p className="mt-1 text-[#c87b4a] tracking-widest uppercase text-sm">{data.jobTitle}</p>
     </header>
     <div className="grid grid-cols-3 gap-8 px-12 pb-12 text-sm">
-      <aside className="col-span-1 space-y-5">
-        <div className="bg-[#c87b4a]/15 p-4 rounded-lg">
-          <h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Contact</h3>
-          {data.email && <p className="break-all">{data.email}</p>}
-          {data.phone && <p>{data.phone}</p>}
-          {data.location && <p>{data.location}</p>}
-          {data.website && <p className="break-all">{data.website}</p>}
-        </div>
-        {data.skills.length > 0 && (
-          <div><h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Skills</h3>
-            <div className="flex flex-wrap gap-1.5">{data.skills.map((s,i)=><span key={i} className="text-xs bg-[#c87b4a] text-white px-2 py-0.5 rounded-full">{s}</span>)}</div>
+      <aside className="col-span-1">
+        <div className="bg-[#c87b4a]/15 p-4 rounded-lg space-y-5">
+          <div>
+            <h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Contact</h3>
+            {data.email && <p className="break-all">{data.email}</p>}
+            {data.phone && <p>{data.phone}</p>}
+            {data.location && <p>{data.location}</p>}
+            {data.website && <p className="break-all">{data.website}</p>}
           </div>
-        )}
-        {data.languages.length > 0 && (<div><h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Languages</h3>{data.languages.map(l=><p key={l.id}><b>{l.name}</b> · {l.level}</p>)}</div>)}
+          {data.skills.length > 0 && (
+            <div>
+              <h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Skills</h3>
+              <div className="flex flex-wrap gap-1.5">{data.skills.map((s,i)=><span key={i} className="text-xs bg-[#c87b4a] text-white px-2 py-0.5 rounded-full">{s}</span>)}</div>
+            </div>
+          )}
+          {data.languages.length > 0 && (
+            <div>
+              <h3 className="text-xs uppercase tracking-widest font-bold text-[#5a3520] mb-2">Languages</h3>
+              {data.languages.map(l=><p key={l.id}><b>{l.name}</b> · {l.level}</p>)}
+            </div>
+          )}
+        </div>
       </aside>
       <main className="col-span-2 space-y-5">
         {data.summary && (<section><h2 className="text-base font-bold text-[#5a3520] mb-1 uppercase tracking-wider">About Me</h2><p className="text-stone-700 leading-relaxed">{data.summary}</p></section>)}
