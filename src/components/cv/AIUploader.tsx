@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CVData, EMPTY_CV } from "@/lib/cv-types";
 import { useAuth } from "@/hooks/useAuth";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 
 interface Props {
   onExtracted: (data: CVData) => void;
@@ -14,13 +15,13 @@ export const AIUploader = ({ onExtracted }: Props) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     if (!file) return;
     if (!user) {
-      toast.info("Please sign in to use AI import");
-      window.location.assign("/auth");
+      setShowLogin(true);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -103,12 +104,13 @@ export const AIUploader = ({ onExtracted }: Props) => {
               <Upload className="w-4 h-4 mr-2" /> Choose file
             </Button>
           ) : (
-            <Button onClick={() => window.location.assign("/auth")} variant="default" size="sm">
+            <Button onClick={() => setShowLogin(true)} variant="default" size="sm">
               Sign in to continue
             </Button>
           )}
         </>
       )}
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
     </div>
   );
 };
