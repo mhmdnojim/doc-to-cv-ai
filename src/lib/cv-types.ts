@@ -50,7 +50,8 @@ export type TemplateId =
   | "modern" | "classic" | "minimal" | "creative" | "executive" | "tech"
   | "elegant" | "professional" | "corporate" | "designer" | "academic"
   | "compact" | "bold" | "photo"
-  | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva";
+  | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva"
+  | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez";
 
 export interface TemplateMeta {
   id: TemplateId;
