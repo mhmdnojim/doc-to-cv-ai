@@ -500,18 +500,6 @@ const Builder = () => {
     setSearchParams({ template: t });
   };
 
-  const buildExportHtml = (): string => {
-    if (!editableRef.current) return "";
-    return buildStandaloneHtml(editableRef.current, data.fullName || "CV");
-  };
-
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-  };
-
   const saveBeforeExport = async () => {
     if (user) {
       toast.loading("Saving CV to your account…", { id: "export-save" });
