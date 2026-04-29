@@ -53,7 +53,8 @@ export type TemplateId =
   | "navarro" | "mitchell" | "flores" | "cortes" | "alvarez" | "silva"
   | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez"
   | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan"
-  | "kovacs" | "leclerc";
+  | "kovacs" | "leclerc"
+  | "mendez" | "navarro-pro" | "grasso";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -97,6 +98,9 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "hassan", name: "Hassan", description: "Warm beige with arch dome header", accent: "from-[#d9c4a3] to-[#6b4f2c]" },
   { id: "kovacs", name: "Kovács", description: "Bold editorial with yellow accent and grayscale photo", accent: "from-[#1c1c1c] to-[#ffd23f]" },
   { id: "leclerc", name: "Leclerc", description: "French sage serif with elegant proportions", accent: "from-[#7a8c6f] to-[#4a5c3f]" },
+  { id: "mendez", name: "Méndez", description: "Bold B&W with circular photo and icon sections", accent: "from-black to-neutral-700" },
+  { id: "navarro-pro", name: "Navarro Pro", description: "Navy rounded sidebar with pill section headers", accent: "from-[#243a55] to-[#1a2a3e]" },
+  { id: "grasso", name: "Grasso", description: "Editorial split with script italics and pink wash", accent: "from-[#fdf3f0] to-[#fce5e0]" },
 ];
 
 export const EMPTY_CV: CVData = {
