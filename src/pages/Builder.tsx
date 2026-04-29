@@ -999,7 +999,7 @@ const Builder = () => {
                   >
                     <div
                       ref={editableRef}
-                      contentEditable
+                      contentEditable={!lockedPages[0]}
                       suppressContentEditableWarning
                       spellCheck
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
