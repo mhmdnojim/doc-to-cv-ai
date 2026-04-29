@@ -41,11 +41,14 @@ const Builder = () => {
   const userTemplateHtml = activeUserTemplate?.html;
 
   const fetchUserTemplates = useCallback(async () => {
-    if (!user) { setUserTemplates([]); return; }
-    const { data, error } = await supabase.from("user_templates").select("id,name,html").eq("user_id", user.id).order("created_at", { ascending: false });
+    // Load all visible (public + own + admin) templates
+    const { data, error } = await supabase
+      .from("user_templates")
+      .select("id,name,html,user_id,is_disabled,is_public")
+      .order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setUserTemplates(data || []);
-  }, [user]);
+  }, [user, isAdmin]);
 
   useEffect(() => { fetchUserTemplates(); }, [fetchUserTemplates]);
 
@@ -55,6 +58,17 @@ const Builder = () => {
     if (error) { toast.error(error.message); return; }
     toast.success("Template deleted");
     if (template === id) handleTemplateChange("modern");
+    fetchUserTemplates();
+  };
+
+  const toggleDisableTemplate = async (t: UserTemplate) => {
+    const next = !t.is_disabled;
+    const { error } = await supabase
+      .from("user_templates")
+      .update({ is_disabled: next })
+      .eq("id", t.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(next ? "Template disabled" : "Template enabled");
     fetchUserTemplates();
   };
 
