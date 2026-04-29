@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { unzip } from "https://deno.land/x/zipit@1.3.5/mod.ts";
+import { BlobReader, ZipReader, TextWriter } from "https://deno.land/x/zipjs@v2.7.45/index.js";
 
 // Extract plain text from a .docx buffer by unzipping and parsing word/document.xml.
 async function extractDocxText(bytes: Uint8Array): Promise<string> {
