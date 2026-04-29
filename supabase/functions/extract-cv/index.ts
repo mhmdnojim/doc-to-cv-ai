@@ -73,25 +73,63 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // ----- Pre-process unsupported file types into plain text -----
+    // Gemini does NOT accept .docx/.doc/.txt directly; only PDFs and images.
+    // We extract text server-side and pass it as `text` instead.
+    let extractedText = text as string | undefined;
+    let fileForVision: { base64: string; mime: string } | null = null;
+
+    if (!extractedText && fileBase64) {
+      const lowerName = (fileName || "").toLowerCase();
+      const mt = (mimeType || "").toLowerCase();
+      const isDocx = mt.includes("officedocument.wordprocessingml") || lowerName.endsWith(".docx");
+      const isPlainText = mt.startsWith("text/") || lowerName.endsWith(".txt") || lowerName.endsWith(".md");
+      const isPdf = mt === "application/pdf" || lowerName.endsWith(".pdf");
+      const isImage = mt.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(lowerName);
+
+      // Decode base64 → Uint8Array
+      const decodeB64 = (b64: string) => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+      if (isDocx) {
+        try {
+          const buf = decodeB64(fileBase64);
+          const result = await mammoth.extractRawText({ arrayBuffer: buf.buffer });
+          extractedText = result.value || "";
+        } catch (err) {
+          console.error("docx extract failed:", err);
+          throw new Error("Failed to read .docx file. Try exporting it as PDF and re-uploading.");
+        }
+      } else if (isPlainText) {
+        try {
+          extractedText = new TextDecoder("utf-8").decode(decodeB64(fileBase64));
+        } catch (err) {
+          console.error("text decode failed:", err);
+          throw new Error("Failed to read text file.");
+        }
+      } else if (isPdf || isImage) {
+        fileForVision = { base64: fileBase64, mime: mimeType || (isPdf ? "application/pdf" : "image/png") };
+      } else {
+        throw new Error(`Unsupported file type: ${mimeType || fileName}. Please upload a PDF, image, .docx or .txt file.`);
+      }
+    }
+
     const userContent: any[] = [
       {
         type: "text",
         text:
-          `Extract structured CV / resume data from the attached ${text ? "text" : "document"}. ` +
+          `Extract structured CV / resume data from the attached ${extractedText ? "text" : "document"}. ` +
           `Filename: ${fileName || "unknown"}. ` +
           `Be thorough — read every page, extract every job, every degree, every skill, every language, every project. ` +
           `Use empty strings for missing fields. Give each item a unique short id like "1","2","3". ` +
           `If the document is clearly NOT a CV/resume, return all empty fields rather than inventing data.`
       }
     ];
-    if (text) {
-      userContent.push({ type: "text", text: `\n\nCV CONTENT:\n${text}` });
-    } else if (fileBase64) {
-      // Lovable AI gateway / Gemini accepts PDFs and images via the OpenAI-compatible
-      // image_url data-URL field. This works for application/pdf, image/png, image/jpeg, etc.
+    if (extractedText) {
+      userContent.push({ type: "text", text: `\n\nCV CONTENT:\n${extractedText}` });
+    } else if (fileForVision) {
       userContent.push({
         type: "image_url",
-        image_url: { url: `data:${mimeType || "application/pdf"};base64,${fileBase64}` }
+        image_url: { url: `data:${fileForVision.mime};base64,${fileForVision.base64}` }
       });
     } else {
       throw new Error("No text or file provided");
