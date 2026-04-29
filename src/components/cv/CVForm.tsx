@@ -65,6 +65,7 @@ export const CVForm = ({ data, onChange }: Props) => {
             <div><Label>Website</Label><Input value={data.website} onChange={e => update({ website: e.target.value })} /></div>
           </div>
           <div><Label>Summary</Label><Textarea rows={4} value={data.summary} onChange={e => update({ summary: e.target.value })} /></div>
+          <PhotoUploader photo={data.photo} onChange={p => update({ photo: p })} />
         </AccordionContent>
       </AccordionItem>
 
