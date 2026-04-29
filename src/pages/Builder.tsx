@@ -508,13 +508,30 @@ const Builder = () => {
     }
   };
 
+  const reportWarnings = (warnings: { kind: string; url: string; reason: string; fix: string }[]) => {
+    if (!warnings || warnings.length === 0) return;
+    const fontIssues = warnings.filter((w) => w.kind === "font");
+    const imgIssues = warnings.filter((w) => w.kind === "image");
+    const parts: string[] = [];
+    if (fontIssues.length) parts.push(`${fontIssues.length} font${fontIssues.length > 1 ? "s" : ""} could not be embedded`);
+    if (imgIssues.length) parts.push(`${imgIssues.length} image${imgIssues.length > 1 ? "s" : ""} could not be embedded`);
+    const summary = parts.join(" · ");
+    const first = warnings[0];
+    toast.warning(`Export complete with warnings: ${summary}`, {
+      description: `${first.reason}. Fix: ${first.fix}`,
+      duration: 9000,
+    });
+    console.warn("[CV export] embed warnings", warnings);
+  };
+
   const handleExportPdf = async () => {
     await saveBeforeExport();
     if (!editableRef.current) return;
     toast.loading("Generating PDF…", { id: "export-pdf" });
     try {
-      await exportToPdf(editableRef.current, `${data.fullName || "cv"}.pdf`);
+      const w = await exportToPdf(editableRef.current, `${data.fullName || "cv"}.pdf`);
       toast.success("PDF downloaded", { id: "export-pdf" });
+      reportWarnings(w);
     } catch (e) {
       console.error(e);
       toast.error("Could not generate PDF", { id: "export-pdf" });
@@ -526,8 +543,9 @@ const Builder = () => {
     if (!editableRef.current) return;
     toast.loading("Generating HTML…", { id: "export-html" });
     try {
-      await exportToHtml(editableRef.current, `${data.fullName || "cv"}.html`);
+      const w = await exportToHtml(editableRef.current, `${data.fullName || "cv"}.html`);
       toast.success("HTML downloaded", { id: "export-html" });
+      reportWarnings(w);
     } catch (e) {
       console.error(e);
       toast.error("Could not generate HTML", { id: "export-html" });
@@ -539,8 +557,9 @@ const Builder = () => {
     if (!editableRef.current) return;
     toast.loading("Generating Word document…", { id: "export-docx" });
     try {
-      await exportToDocx(editableRef.current, `${data.fullName || "cv"}.docx`);
+      const w = await exportToDocx(editableRef.current, `${data.fullName || "cv"}.docx`);
       toast.success("Word document downloaded", { id: "export-docx" });
+      reportWarnings(w);
     } catch (e) {
       console.error(e);
       toast.error("Could not generate Word document", { id: "export-docx" });
