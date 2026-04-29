@@ -223,6 +223,39 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
                 </p>
 
                 <div>
+                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Font family</label>
+                  <select
+                    onChange={(e) => setFontFamily(e.target.value)}
+                    defaultValue=""
+                    className="mt-1.5 w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+                  >
+                    <option value="" disabled>Choose a font…</option>
+                    <optgroup label="Sans-serif">
+                      <option value="Inter, system-ui, sans-serif">Inter</option>
+                      <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option>
+                      <option value="Arial, sans-serif">Arial</option>
+                      <option value="'Roboto', sans-serif">Roboto</option>
+                      <option value="'Open Sans', sans-serif">Open Sans</option>
+                      <option value="'Lato', sans-serif">Lato</option>
+                      <option value="'Montserrat', sans-serif">Montserrat</option>
+                      <option value="'Poppins', sans-serif">Poppins</option>
+                    </optgroup>
+                    <optgroup label="Serif">
+                      <option value="Georgia, serif">Georgia</option>
+                      <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                      <option value="'Playfair Display', serif">Playfair Display</option>
+                      <option value="'Merriweather', serif">Merriweather</option>
+                      <option value="Garamond, serif">Garamond</option>
+                    </optgroup>
+                    <optgroup label="Monospace">
+                      <option value="'Courier New', Courier, monospace">Courier New</option>
+                      <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                    </optgroup>
+                  </select>
+                  <p className="text-[10px] text-muted-foreground mt-1">Select text first, or apply to whole CV.</p>
+                </div>
+
+                <div>
                   <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Style</label>
                   <div className="mt-1.5 flex gap-1">
                     <Button variant="outline" size="sm" onClick={() => exec("bold")} className="flex-1" title="Bold (Ctrl+B)">
