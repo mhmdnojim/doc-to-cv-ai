@@ -116,7 +116,22 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 210mm;
+  }
+  /* Avoid awkward breaks inside common CV blocks */
+  #cv-print-area li,
+  #cv-print-area h1,
+  #cv-print-area h2,
+  #cv-print-area h3,
+  #cv-print-area .avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Force a hard page break */
+  #cv-print-area .page-break,
+  #cv-print-area [data-page-break] {
+    break-before: page;
+    page-break-before: always;
   }
   @page { margin: 0; size: A4; }
 }
