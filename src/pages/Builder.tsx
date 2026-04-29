@@ -897,6 +897,8 @@ const Builder = () => {
                   // in the previews — the user wants to see THEIR data now.
                   setUseSampleData(false);
                   setShowUpload(false);
+                  // Force the contentEditable preview to remount with the new data.
+                  bumpData();
                 }} />
               </div>
             )}
