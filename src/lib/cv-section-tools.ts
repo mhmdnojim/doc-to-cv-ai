@@ -188,6 +188,9 @@ export function cleanupTools(root: HTMLElement) {
   root.querySelectorAll(`[${TOOL_ATTR}]`).forEach(el => el.remove());
   root.querySelectorAll<HTMLElement>(`[${SECTION_ATTR}]`).forEach(el => {
     el.style.position = "";
+    el.style.outline = "";
+    el.style.outlineColor = "";
+    el.style.outlineOffset = "";
     el.removeAttribute("draggable");
   });
 }
