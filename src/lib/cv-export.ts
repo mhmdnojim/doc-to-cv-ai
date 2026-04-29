@@ -13,6 +13,7 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
+  LevelFormat,
 } from "docx";
 import { saveAs } from "file-saver";
 
