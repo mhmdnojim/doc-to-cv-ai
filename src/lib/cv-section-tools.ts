@@ -482,6 +482,7 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
       // Use a warmer accent + tint so subsections read as nested, not duplicated.
       accent: "hsl(var(--accent-foreground, var(--primary)))",
       bgTint: "hsl(var(--muted) / 0.5)",
+      compact: true, // smaller, inset buttons so they don't overlap section buttons
       onInsertAbove: () => insertSubAt(item, "before"),
       onInsertBelow: () => insertSubAt(item, "after"),
     });
