@@ -346,16 +346,11 @@ const Builder = () => {
             {isAdmin && (
               <Link to="/admin"><Button variant="ghost" size="sm" title="Admin panel"><ShieldCheck className="w-4 h-4" /></Button></Link>
             )}
-            {user ? (
+            {user && (
               <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
                 <LogOut className="w-4 h-4" />
               </Button>
-            ) : (
-              <Link to="/auth"><Button variant="ghost" size="sm"><LogIn className="w-4 h-4 mr-2" />Sign in</Button></Link>
             )}
-            <Button variant={showUpload ? "default" : "outline"} size="sm" onClick={() => setShowUpload(s => !s)}>
-              <Upload className="w-4 h-4 mr-2" />Import CV
-            </Button>
             <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
               <LayoutTemplate className="w-4 h-4 mr-2" />Templates
             </Button>
