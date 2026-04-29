@@ -197,9 +197,9 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
   };
 
   return (
-    <div className="flex print:hidden lg:h-full">
+    <div className="flex print:hidden h-full">
       {/* Vertical icon rail */}
-      <div className="w-16 shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1 lg:h-full lg:overflow-y-auto">
+      <div className="w-16 shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1 h-full overflow-y-auto">
         {RAIL_ITEMS.map(item => {
           const Icon = item.icon;
           const isActive = active === item.key;
