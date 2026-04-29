@@ -499,6 +499,13 @@ const Builder = () => {
         </div>
       </div>
 
+      {/* Upload-template dialog */}
+      <TemplateUploadDialog
+        open={showTplDialog}
+        onOpenChange={setShowTplDialog}
+        onCreated={fetchUserTemplates}
+      />
+
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
         <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
