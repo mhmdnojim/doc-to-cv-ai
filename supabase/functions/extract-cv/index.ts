@@ -117,8 +117,8 @@ serve(async (req) => {
       if (isDocx) {
         try {
           const buf = decodeB64(fileBase64);
-          const result = await mammoth.extractRawText({ arrayBuffer: buf.buffer });
-          extractedText = result.value || "";
+          extractedText = await extractDocxText(buf);
+          if (!extractedText) throw new Error("empty docx text");
         } catch (err) {
           console.error("docx extract failed:", err);
           throw new Error("Failed to read .docx file. Try exporting it as PDF and re-uploading.");
