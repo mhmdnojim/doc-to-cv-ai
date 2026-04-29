@@ -142,6 +142,10 @@ const Builder = () => {
     return SAMPLE_CV;
   });
 
+  // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
+  const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
+  const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
+
   // Tracks the placeholder text of the most recently added item — used to auto-focus it
   const [pendingFocusText, setPendingFocusText] = useState<string | null>(null);
 
@@ -638,9 +642,6 @@ const Builder = () => {
       </nav>
 
       {(() => {
-        // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
-        const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
-        const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
             <label className="flex items-center justify-between gap-2 mb-3 px-1 py-2 rounded-md bg-muted/40 border border-border cursor-pointer">
@@ -861,7 +862,7 @@ const Builder = () => {
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
                       onFocus={() => setFocusedPage(0)}
                     >
-                      <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                      <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
                     </div>
                   </div>
                 </div>
@@ -995,7 +996,7 @@ const Builder = () => {
 
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
-        <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+        <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
       </div>
     </div>
   );
