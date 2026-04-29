@@ -56,7 +56,8 @@ export type TemplateId =
   | "kovacs" | "leclerc"
   | "mendez" | "navarro-pro" | "grasso"
   | "gibbons" | "gallego-pro" | "mae-evans" | "napolitani"
-  | "olivia-wilson";
+  | "olivia-wilson"
+  | "greta-dark" | "alfredo";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -108,6 +109,8 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "mae-evans", name: "Mae Evans", description: "Warm cream serif with circular photo", accent: "from-[#f4ead8] to-[#c9b88a]" },
   { id: "napolitani", name: "Napolitani", description: "Clean serif with coral accents and right photo", accent: "from-[#d97757] to-[#a8593f]" },
   { id: "olivia-wilson", name: "Olivia Wilson", description: "Centered editorial with grayscale photo and star skill chips", accent: "from-stone-700 to-stone-900" },
+  { id: "greta-dark", name: "Greta Dark", description: "Dark forest green editorial with cream serif text", accent: "from-[#1f3324] to-[#3a4f3e]" },
+  { id: "alfredo", name: "Alfredo", description: "Gray sidebar with skill bars and clean two-column body", accent: "from-[#e7eaee] to-slate-700" },
 ];
 
 export const EMPTY_CV: CVData = {

@@ -10,6 +10,7 @@ import {
   MendezTemplate, NavarroProTemplate, GrassoTemplate,
   GibbonsTemplate, GallegoProTemplate, MaeEvansTemplate, NapolitaniTemplate,
   OliviaWilsonTemplate,
+  GretaDarkTemplate, AlfredoTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
 
@@ -63,6 +64,8 @@ export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
     case "mae-evans": return <MaeEvansTemplate data={data} />;
     case "napolitani": return <NapolitaniTemplate data={data} />;
     case "olivia-wilson": return <OliviaWilsonTemplate data={data} />;
+    case "greta-dark": return <GretaDarkTemplate data={data} />;
+    case "alfredo": return <AlfredoTemplate data={data} />;
     default: return <ModernTemplate data={data} />;
   }
 };
