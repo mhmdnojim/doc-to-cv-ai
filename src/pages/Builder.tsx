@@ -343,6 +343,9 @@ const Builder = () => {
             <span className="font-semibold text-sm">CV Editor</span>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin"><Button variant="ghost" size="sm" title="Admin panel"><ShieldCheck className="w-4 h-4" /></Button></Link>
+            )}
             {user ? (
               <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
                 <LogOut className="w-4 h-4" />
