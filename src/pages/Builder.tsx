@@ -862,7 +862,7 @@ const Builder = () => {
                       className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
                       onFocus={() => setFocusedPage(0)}
                     >
-                      <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                      <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
                     </div>
                   </div>
                 </div>
@@ -996,7 +996,7 @@ const Builder = () => {
 
       {/* Print-only area */}
       <div id="cv-print-area" className="hidden print:block">
-        <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+        <CVPreview data={previewData} template={template} userTemplateHtml={userTemplateHtml} />
       </div>
     </div>
   );
