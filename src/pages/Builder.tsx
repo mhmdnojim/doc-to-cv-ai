@@ -318,21 +318,18 @@ const Builder = () => {
             <span className="font-semibold text-sm">CV Editor</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant={showUpload ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowUpload(s => !s)}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Import CV
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Link to="/auth"><Button variant="ghost" size="sm"><LogIn className="w-4 h-4 mr-2" />Sign in</Button></Link>
+            )}
+            <Button variant={showUpload ? "default" : "outline"} size="sm" onClick={() => setShowUpload(s => !s)}>
+              <Upload className="w-4 h-4 mr-2" />Import CV
             </Button>
-            <Button
-              variant={showTemplates ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowTemplates(s => !s)}
-            >
-              <LayoutTemplate className="w-4 h-4 mr-2" />
-              Templates
+            <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
+              <LayoutTemplate className="w-4 h-4 mr-2" />Templates
             </Button>
             <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
               <Download className="w-4 h-4 mr-2" /> Export PDF
