@@ -184,14 +184,15 @@ const Builder = () => {
     // Fallback: append to root
     if (!target) target = root.firstElementChild as HTMLElement || root;
 
+    const uniqueTitle = `New Section ${Date.now().toString().slice(-4)}`;
     const sec = document.createElement("section");
     sec.style.cssText = "margin-top:1.25rem;";
     sec.innerHTML = `
-      <h2 style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:0.85rem;margin-bottom:0.5rem;border-bottom:1px solid currentColor;padding-bottom:0.25rem;opacity:0.95;">New Section</h2>
+      <h2 style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:0.85rem;margin-bottom:0.5rem;border-bottom:1px solid currentColor;padding-bottom:0.25rem;opacity:0.95;">${uniqueTitle}</h2>
       <p style="font-size:0.85rem;line-height:1.5;opacity:0.9;">Click here to write the content of your new section. You can list anything: certifications, awards, hobbies, references, volunteering…</p>
     `;
     target.appendChild(sec);
-    setPendingFocusText("New Section");
+    setPendingFocusText(uniqueTitle);
     toast.success(`Custom section added to the ${side} side`);
   };
 
