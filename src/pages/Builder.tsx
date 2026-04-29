@@ -636,6 +636,10 @@ const Builder = () => {
       </nav>
 
       {(() => {
+        // Use sample data for thumbnails when current CV is essentially empty,
+        // so previews always show meaningful content.
+        const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
+        const previewData = isEmptyCv ? SAMPLE_CV : data;
         const templatesPanel = (
           <div>
             <div className="grid grid-cols-2 gap-3">
