@@ -512,34 +512,22 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
 
 
 /**
- * Clone a section for "add above/below". Keeps the heading + at least one
- * subsection (the first repeating child if there are several). All injected
- * tool elements are stripped, and text is softened to "New entry" so it's
- * obvious the copy needs editing.
+ * Clone a section for "add above/below". Keeps the heading and ALL
+ * subsections / inner content intact so the new copy is a true duplicate
+ * the user can then freely edit or delete entries inside.
  */
 function cloneSectionForInsert(sec: HTMLElement): HTMLElement {
   const clone = sec.cloneNode(true) as HTMLElement;
-  // Strip injected tools / IDs from clone
+  // Strip injected tools / IDs from clone (and from any nested elements)
   clone.querySelectorAll(`[${TOOL_ATTR}]`).forEach(el => el.remove());
   clone.removeAttribute(SECTION_ATTR);
-
-  // If the section has a repeating subsection container with multiple items,
-  // keep only the first item so the copy starts with one clean subsection.
-  const found = findSubsectionContainer(clone);
-  if (found && found.items.length > 1) {
-    found.items.slice(1).forEach(item => item.remove());
-  }
-
-  // Soften leaf text so it's clearly a fresh copy ready to be edited.
-  clone.querySelectorAll<HTMLElement>("*").forEach(el => {
-    if (el.children.length === 0 && el.textContent && el.textContent.trim()) {
-      // Preserve headings as-is so the user keeps the section name; only
-      // soften body/leaf text inside subsections.
-      const tag = el.tagName;
-      if (tag === "H1" || tag === "H2" || tag === "H3") return;
-      el.textContent = "New entry";
-    }
+  clone.querySelectorAll(`[${SECTION_ATTR}]`).forEach(el => el.removeAttribute(SECTION_ATTR));
+  // Also remove indentation / personal-info markers from clone
+  clone.querySelectorAll("[data-cv-indented]").forEach(el => {
+    el.removeAttribute("data-cv-indented");
+    el.removeAttribute("data-cv-orig-padding-left");
   });
+  clone.querySelectorAll(`[${PERSONAL_INFO_ATTR}]`).forEach(el => el.removeAttribute(PERSONAL_INFO_ATTR));
 
   // Reset positioning side-effects from the original
   clone.style.position = "";
