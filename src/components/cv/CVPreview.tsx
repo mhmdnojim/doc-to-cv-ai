@@ -8,6 +8,7 @@ import {
   ReyesTemplate, TanakaTemplate, OkonkwoTemplate, PetrovTemplate, DuboisTemplate, HassanTemplate,
   KovacsTemplate, LeclercTemplate,
   MendezTemplate, NavarroProTemplate, GrassoTemplate,
+  GibbonsTemplate, GallegoProTemplate, MaeEvansTemplate, NapolitaniTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
 
@@ -56,6 +57,10 @@ export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
     case "mendez": return <MendezTemplate data={data} />;
     case "navarro-pro": return <NavarroProTemplate data={data} />;
     case "grasso": return <GrassoTemplate data={data} />;
+    case "gibbons": return <GibbonsTemplate data={data} />;
+    case "gallego-pro": return <GallegoProTemplate data={data} />;
+    case "mae-evans": return <MaeEvansTemplate data={data} />;
+    case "napolitani": return <NapolitaniTemplate data={data} />;
     default: return <ModernTemplate data={data} />;
   }
 };

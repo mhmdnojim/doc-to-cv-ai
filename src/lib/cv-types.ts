@@ -54,7 +54,8 @@ export type TemplateId =
   | "wilson" | "gallego" | "zaliyanti" | "choconta" | "nasser" | "perez"
   | "reyes" | "tanaka" | "okonkwo" | "petrov" | "dubois" | "hassan"
   | "kovacs" | "leclerc"
-  | "mendez" | "navarro-pro" | "grasso";
+  | "mendez" | "navarro-pro" | "grasso"
+  | "gibbons" | "gallego-pro" | "mae-evans" | "napolitani";
 
 export interface TemplateMeta {
   id: TemplateId;
@@ -101,6 +102,10 @@ export const TEMPLATES: TemplateMeta[] = [
   { id: "mendez", name: "Méndez", description: "Bold B&W with circular photo and icon sections", accent: "from-black to-neutral-700" },
   { id: "navarro-pro", name: "Navarro Pro", description: "Navy rounded sidebar with pill section headers", accent: "from-[#243a55] to-[#1a2a3e]" },
   { id: "grasso", name: "Grasso", description: "Editorial split with script italics and pink wash", accent: "from-[#fdf3f0] to-[#fce5e0]" },
+  { id: "gibbons", name: "Gibbons", description: "Navy header on light card grid with abstract shapes", accent: "from-[#1f3b5c] to-[#3a5a7a]" },
+  { id: "gallego-pro", name: "Gallego Pro", description: "Gray photo header with teal accent labels", accent: "from-[#cfd5db] to-[#5b8da3]" },
+  { id: "mae-evans", name: "Mae Evans", description: "Warm cream serif with circular photo", accent: "from-[#f4ead8] to-[#c9b88a]" },
+  { id: "napolitani", name: "Napolitani", description: "Clean serif with coral accents and right photo", accent: "from-[#d97757] to-[#a8593f]" },
 ];
 
 export const EMPTY_CV: CVData = {
