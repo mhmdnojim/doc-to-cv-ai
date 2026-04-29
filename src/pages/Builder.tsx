@@ -927,7 +927,17 @@ const Builder = () => {
               </div>
             </div>
 
-            {/* Editable CV preview — main CV card + extra blank pages as separate cards */}
+            {/* Editable CV preview — main CV card + extra blank pages as separate cards.
+                Wrapped in a Ctrl/Cmd-scroll zoomable container. */}
+            <div
+              ref={cvZoomRef}
+              style={{
+                transform: `scale(${cvZoom})`,
+                transformOrigin: "top center",
+                transition: "transform 80ms ease-out",
+                width: "100%",
+              }}
+            >
             <div className="flex flex-col items-center gap-8">
               {/* Main CV card (covers all auto-measured pages) */}
               <div
