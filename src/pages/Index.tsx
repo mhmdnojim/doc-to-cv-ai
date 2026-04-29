@@ -5,6 +5,7 @@ import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
+import { LoginDialog } from "@/components/auth/LoginDialog";
 import { useAuth } from "@/hooks/useAuth";
 import loginCube from "@/assets/login-cube.png";
 
