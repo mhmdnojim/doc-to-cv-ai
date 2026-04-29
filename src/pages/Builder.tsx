@@ -41,6 +41,25 @@ const Builder = () => {
   const [focusedPage, setFocusedPage] = useState(0);
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
+  const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
+
+  const addBlankPage = useCallback((afterIdx?: number) => {
+    setManualPages(p => {
+      const next = p + 1;
+      const newIdx = Math.max(measuredPages, next) - 1;
+      toast.success(`Page ${next} added`);
+      setTimeout(() => {
+        const el = pageRefs.current[newIdx];
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setFocusedPage(newIdx);
+          const editable = el.querySelector<HTMLElement>("[contenteditable='true']");
+          editable?.focus();
+        }
+      }, 120);
+      return next;
+    });
+  }, [measuredPages]);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
