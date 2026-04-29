@@ -677,28 +677,6 @@ const Builder = () => {
               </div>
             )}
 
-            {/* Floating add-section toolbar */}
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
-              <span className="text-xs font-medium text-muted-foreground mr-1">Add to CV:</span>
-              <Button size="sm" variant="outline" onClick={addExperience}><Plus className="w-3 h-3 mr-1" />Experience</Button>
-              <Button size="sm" variant="outline" onClick={addEducation}><Plus className="w-3 h-3 mr-1" />Education</Button>
-              <Button size="sm" variant="outline" onClick={addSkill}><Plus className="w-3 h-3 mr-1" />Skill</Button>
-              <Button size="sm" variant="outline" onClick={addLanguage}><Plus className="w-3 h-3 mr-1" />Language</Button>
-              <Button size="sm" variant="outline" onClick={addProject}><Plus className="w-3 h-3 mr-1" />Project</Button>
-              <span className="mx-1 h-5 w-px bg-border" />
-              <Button size="sm" variant="outline" onClick={() => addCustomSection("left")}>
-                <Plus className="w-3 h-3 mr-1" />Section ← left
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => addCustomSection("right")}>
-                <Plus className="w-3 h-3 mr-1" />Section right →
-              </Button>
-              <span className="ml-auto flex items-center gap-2 text-xs">
-                <button onClick={loadSample} className="text-primary hover:underline">Load sample</button>
-                <span className="text-muted-foreground">·</span>
-                <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
-              </span>
-            </div>
-
             <p className="text-xs text-muted-foreground text-center">
               ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
             </p>
