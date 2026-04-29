@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { TEMPLATES, SAMPLE_CV } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
 import { ArrowLeft } from "lucide-react";
+import { AuthPill } from "@/components/AuthPill";
 
 const Templates = () => {
   const navigate = useNavigate();
