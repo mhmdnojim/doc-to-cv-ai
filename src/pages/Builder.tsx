@@ -1097,7 +1097,7 @@ const Builder = () => {
                         style={{ width: "210mm", height: "297mm" }}
                       >
                         <div
-                          contentEditable
+                          contentEditable={!lockedPages[pageIdx]}
                           suppressContentEditableWarning
                           spellCheck
                           className="editable-cv outline-none w-full h-full p-12 text-sm text-foreground"
