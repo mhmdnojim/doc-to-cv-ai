@@ -25,6 +25,7 @@ import {
   type NewSectionTemplate,
 } from "@/lib/cv-section-tools";
 import { SectionPositionDialog } from "@/components/cv/SectionPositionDialog";
+import { buildStandaloneHtml, exportToPdf } from "@/lib/cv-export";
 
 const STORAGE_KEY = "cv-builder-data";
 const HAS_DATA_KEY = "cv-builder-touched";
@@ -521,22 +522,15 @@ const Builder = () => {
 
   const handleExportPdf = async () => {
     await saveBeforeExport();
-    setTimeout(() => {
-      const printArea = document.getElementById("cv-print-area");
-      if (printArea && editableRef.current) {
-        const clone = editableRef.current.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("[data-add-btn], [data-section-ctrl], [data-cv-tool]").forEach(el => el.remove());
-        printArea.innerHTML = clone.innerHTML;
-        const extra = Math.max(0, manualPages - measuredPages);
-        for (let i = 0; i < extra; i++) {
-          const blank = document.createElement("div");
-          blank.className = "page-break";
-          blank.style.cssText = "height: 297mm; width: 210mm;";
-          printArea.appendChild(blank);
-        }
-      }
-      window.print();
-    }, 250);
+    if (!editableRef.current) return;
+    toast.loading("Generating PDF…", { id: "export-pdf" });
+    try {
+      await exportToPdf(editableRef.current, `${data.fullName || "cv"}.pdf`);
+      toast.success("PDF downloaded", { id: "export-pdf" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not generate PDF", { id: "export-pdf" });
+    }
   };
 
   const handleExportHtml = async () => {
