@@ -274,6 +274,10 @@ function makeDragHandle(): HTMLElement {
 export interface InjectOptions {
   onInsert: (where: SectionLocation) => void;
   onReorder?: () => void;
+  // Called AFTER any structural mutation performed by injected controls
+  // (add subsection, clone section above/below, drag-drop reorder).
+  // Use this to push a snapshot into your undo/redo history.
+  onMutate?: () => void;
 }
 
 /**
