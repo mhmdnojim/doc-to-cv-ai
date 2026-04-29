@@ -299,7 +299,7 @@ function firstFontFamily(ff: string): string {
 interface RunStyle {
   bold?: boolean;
   italic?: boolean;
-  underline?: boolean;
+  underline?: { type?: "single" } | undefined;
   size?: number;
   color?: string;
   font?: string;
@@ -310,7 +310,7 @@ function getRunStyle(el: HTMLElement): RunStyle {
   return {
     bold: parseInt(cs.fontWeight, 10) >= 600 || cs.fontWeight === "bold",
     italic: cs.fontStyle === "italic",
-    underline: cs.textDecorationLine.includes("underline"),
+    underline: cs.textDecorationLine.includes("underline") ? {} : undefined,
     size: pxToHalfPt(parseFloat(cs.fontSize) || 14),
     color: rgbToHex(cs.color),
     font: firstFontFamily(cs.fontFamily),
