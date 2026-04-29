@@ -146,6 +146,8 @@ serve(async (req) => {
         text:
           `Extract structured CV / resume data from the attached ${extractedText ? "text" : "document"}. ` +
           `Filename: ${fileName || "unknown"}. ` +
+          `The document may be in ANY language — including Chinese (中文), Kazakh (Қазақша), Bulgarian (Български), Turkmen (Türkmençe), Arabic (العربية), Indonesian (Bahasa Indonesia), or others. ` +
+          `PRESERVE THE ORIGINAL LANGUAGE AND SCRIPT exactly as written — do NOT translate to English. ` +
           `Be thorough — read every page, extract every job, every degree, every skill, every language, every project. ` +
           `Use empty strings for missing fields. Give each item a unique short id like "1","2","3". ` +
           `If the document is clearly NOT a CV/resume, return all empty fields rather than inventing data.`
@@ -169,7 +171,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are an expert CV/resume parser. Read the entire document, including scanned pages and images, and extract all structured information accurately. ALWAYS call the extract_cv function with the data you find." },
+          { role: "system", content: "You are an expert multilingual CV/resume parser. You fluently read and parse resumes written in ANY language and script, including but not limited to: English, Chinese (Simplified 简体中文 and Traditional 繁體中文), Kazakh (Қазақша, both Cyrillic and Latin), Bulgarian (Български), Turkmen (Türkmençe / Türkmen, Latin and Cyrillic), Arabic (العربية, right-to-left), Indonesian (Bahasa Indonesia), Russian, Spanish, French, German, Portuguese, Japanese, Korean, Hindi, Urdu, Persian, Turkish, etc. CRITICAL RULES: (1) PRESERVE THE ORIGINAL LANGUAGE AND SCRIPT of the document — do NOT translate names, job titles, companies, schools, descriptions, skills, or summaries. Keep Chinese characters as Chinese, Arabic as Arabic, Cyrillic as Cyrillic, etc. (2) Correctly handle right-to-left scripts (Arabic). (3) Recognize section headings in any language (e.g. 工作经验, خبرة العمل, Жұмыс тәжірибесі, Опит, Iş tejribesi, Pengalaman Kerja all mean 'Experience'). (4) Read the entire document including scanned pages and images. (5) ALWAYS call the extract_cv function with the data you find." },
           { role: "user", content: userContent }
         ],
         tools: [{
