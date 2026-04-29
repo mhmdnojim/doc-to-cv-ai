@@ -181,7 +181,7 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
 
       {/* Slide-out panel */}
       {active && (
-        <div className="w-[300px] shrink-0 bg-card border-r border-border lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="w-[300px] shrink-0 bg-card border-r border-border lg:h-full overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 bg-card z-10">
             <h3 className="font-semibold text-sm capitalize">
               {RAIL_ITEMS.find(r => r.key === active)?.label}
