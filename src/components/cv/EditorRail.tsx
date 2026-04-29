@@ -160,7 +160,13 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
           return (
             <button
               key={item.key}
-              onClick={() => setActive(isActive ? null : item.key)}
+              onClick={() => {
+                if (item.key === "magic") {
+                  setMagicOpen(true);
+                  return;
+                }
+                setActive(isActive ? null : item.key);
+              }}
               className={`w-14 py-2.5 rounded-lg flex flex-col items-center gap-1 transition-base ${
                 isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
