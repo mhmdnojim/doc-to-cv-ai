@@ -509,6 +509,17 @@ const Builder = () => {
             >
               <FilePlus className="w-4 h-4 mr-2" /> Add page
             </Button>
+            {user && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => saveCv(false)}
+                disabled={saving}
+                title={lastSavedAt ? `Last saved ${lastSavedAt.toLocaleTimeString()}` : "Save to your account"}
+              >
+                {saving ? "Saving…" : lastSavedAt ? "Saved ✓" : "Save"}
+              </Button>
+            )}
             <Button onClick={handleExport} className="bg-gradient-primary shadow-glow">
               <Download className="w-4 h-4 mr-2" /> Export PDF
             </Button>
