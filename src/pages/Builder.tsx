@@ -960,13 +960,18 @@ const Builder = () => {
                       }}
                       disabled={totalPages < 2}
                       className="p-1.5 rounded hover:bg-muted hover:text-foreground disabled:opacity-30"
-                      title="Next page"
+                      title="Move down / Next page"
                     ><ChevronDown className="w-4 h-4" /></button>
                     <button
                       onClick={() => setHiddenPages(p => ({ ...p, 0: !p[0] }))}
                       className="p-1.5 rounded hover:bg-muted hover:text-foreground"
                       title={hiddenPages[0] ? "Show page" : "Hide page"}
                     >{hiddenPages[0] ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}</button>
+                    <button
+                      onClick={() => setLockedPages(p => ({ ...p, 0: !p[0] }))}
+                      className="p-1.5 rounded hover:bg-muted hover:text-foreground"
+                      title={lockedPages[0] ? "Unlock page" : "Lock page"}
+                    >{lockedPages[0] ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}</button>
                     <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Duplicate (CV pages can't be duplicated)"><Copy className="w-4 h-4" /></button>
                     <button disabled className="p-1.5 rounded hover:bg-muted disabled:opacity-30" title="Main CV can't be deleted"><Trash2 className="w-4 h-4" /></button>
                     <button
