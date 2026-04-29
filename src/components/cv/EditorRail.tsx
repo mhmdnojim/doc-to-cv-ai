@@ -43,6 +43,7 @@ const MIN_FONT = 8;
 const MAX_FONT = 72;
 
 export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
+  const { user } = useAuth();
   const [active, setActive] = useState<RailKey | null>("templates");
 
   // Magic Write state
