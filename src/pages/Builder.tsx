@@ -5,7 +5,7 @@ import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -343,6 +343,9 @@ const Builder = () => {
             <span className="font-semibold text-sm">CV Editor</span>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin"><Button variant="ghost" size="sm" title="Admin panel"><ShieldCheck className="w-4 h-4" /></Button></Link>
+            )}
             {user ? (
               <Button variant="ghost" size="sm" onClick={() => signOut()} title="Sign out">
                 <LogOut className="w-4 h-4" />
@@ -563,7 +566,10 @@ const Builder = () => {
       <TemplateUploadDialog
         open={showTplDialog}
         onOpenChange={(v) => { setShowTplDialog(v); if (!v) setEditingTemplate(null); }}
-        onCreated={fetchUserTemplates}
+        onCreated={async (id) => {
+          await fetchUserTemplates();
+          if (id) handleTemplateChange(id);
+        }}
         editing={editingTemplate}
       />
 

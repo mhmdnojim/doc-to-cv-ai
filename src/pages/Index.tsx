@@ -186,7 +186,11 @@ const Index = () => {
         <div className="container text-center text-sm text-muted-foreground">With US — make your CV count</div>
       </footer>
 
-      <TemplateUploadDialog open={showUpload} onOpenChange={setShowUpload} onCreated={() => { /* template saved */ }} />
+      <TemplateUploadDialog
+        open={showUpload}
+        onOpenChange={setShowUpload}
+        onCreated={(id) => { if (id) navigate(`/builder?template=${id}`); }}
+      />
       <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
     </div>
   );
