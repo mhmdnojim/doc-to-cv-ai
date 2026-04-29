@@ -4,9 +4,17 @@ import {
   ElegantTemplate, ProfessionalTemplate, CorporateTemplate, DesignerTemplate, AcademicTemplate,
   CompactTemplate, BoldTemplate, PhotoTemplate,
 } from "./templates";
+import { UserTemplatePreview } from "./UserTemplatePreview";
 
-export const CVPreview = ({ data, template }: { data: CVData; template: TemplateId }) => {
-  switch (template) {
+interface Props {
+  data: CVData;
+  template: TemplateId | string; // string allows custom template ids
+  userTemplateHtml?: string;     // when set, render this instead of built-in
+}
+
+export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
+  if (userTemplateHtml) return <UserTemplatePreview html={userTemplateHtml} data={data} />;
+  switch (template as TemplateId) {
     case "classic": return <ClassicTemplate data={data} />;
     case "minimal": return <MinimalTemplate data={data} />;
     case "creative": return <CreativeTemplate data={data} />;
