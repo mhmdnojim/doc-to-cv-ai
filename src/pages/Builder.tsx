@@ -102,6 +102,8 @@ const Builder = () => {
     const v = prompt(`Edit ${label}:`, (data as any)[field] || "");
     if (v !== null) { touch(); setData({ ...data, [field]: v }); }
   };
+
+  const loadSample = () => {
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(SAMPLE_CV);
     toast.success("Sample loaded");
