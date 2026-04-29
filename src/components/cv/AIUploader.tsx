@@ -30,21 +30,37 @@ export const AIUploader = ({ onExtracted }: Props) => {
     setFileName(file.name);
     setLoading(true);
     try {
-      const text = await file.text().catch(() => "");
-      // For PDFs/binary, fallback: send base64
+      // Try plain-text read first (works for .txt / .md and some .docx exports).
+      const rawText = await file.text().catch(() => "");
+      const looksLikeText =
+        rawText &&
+        rawText.length > 50 &&
+        // Avoid sending binary garbage that happens to contain ascii bytes
+        !/%PDF-/.test(rawText.slice(0, 8)) &&
+        /[a-z]/i.test(rawText) &&
+        // Mostly printable characters
+        rawText.replace(/[\x20-\x7E\s]/g, "").length / rawText.length < 0.15;
+
       let payload: any = { fileName: file.name };
-      if (text && /[a-z]/i.test(text) && text.length > 50) {
-        payload.text = text.slice(0, 30000);
+      if (looksLikeText) {
+        payload.text = rawText.slice(0, 60000);
       } else {
-        const buf = await file.arrayBuffer();
-        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf).slice(0, 1024 * 1024)));
-        payload.fileBase64 = b64;
-        payload.mimeType = file.type || "application/octet-stream";
+        // Encode the WHOLE file as base64 in safe chunks (spread-into-fromCharCode
+        // overflows the call stack for files >~100KB).
+        const buf = new Uint8Array(await file.arrayBuffer());
+        let binary = "";
+        const CHUNK = 0x8000;
+        for (let i = 0; i < buf.length; i += CHUNK) {
+          binary += String.fromCharCode.apply(null, Array.from(buf.subarray(i, i + CHUNK)));
+        }
+        payload.fileBase64 = btoa(binary);
+        payload.mimeType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
       }
 
       const { data, error } = await supabase.functions.invoke("extract-cv", { body: payload });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      if (!data?.cv) throw new Error("No CV data returned");
 
       const merged: CVData = { ...EMPTY_CV, ...data.cv };
       onExtracted(merged);

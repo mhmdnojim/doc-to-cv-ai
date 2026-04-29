@@ -875,6 +875,9 @@ const Builder = () => {
                 <AIUploader onExtracted={(d) => {
                   localStorage.setItem(HAS_DATA_KEY, "1");
                   setData(d);
+                  // After importing real CV data, stop showing sample-data placeholders
+                  // in the previews — the user wants to see THEIR data now.
+                  setUseSampleData(false);
                   setShowUpload(false);
                 }} />
               </div>

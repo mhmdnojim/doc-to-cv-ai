@@ -73,21 +73,37 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const userContent: any[] = [
-      { type: "text", text: `Extract structured CV data from the following ${text ? "text" : "document"}. Filename: ${fileName || "unknown"}. Be thorough — extract every job, every degree, every skill. Use empty strings for missing fields and ensure each item has a unique short id like "1","2","3". If the document isn't a CV, return empty fields.` }
+      {
+        type: "text",
+        text:
+          `Extract structured CV / resume data from the attached ${text ? "text" : "document"}. ` +
+          `Filename: ${fileName || "unknown"}. ` +
+          `Be thorough — read every page, extract every job, every degree, every skill, every language, every project. ` +
+          `Use empty strings for missing fields. Give each item a unique short id like "1","2","3". ` +
+          `If the document is clearly NOT a CV/resume, return all empty fields rather than inventing data.`
+      }
     ];
     if (text) {
       userContent.push({ type: "text", text: `\n\nCV CONTENT:\n${text}` });
     } else if (fileBase64) {
-      userContent.push({ type: "image_url", image_url: { url: `data:${mimeType};base64,${fileBase64}` } });
+      // Lovable AI gateway / Gemini accepts PDFs and images via the OpenAI-compatible
+      // image_url data-URL field. This works for application/pdf, image/png, image/jpeg, etc.
+      userContent.push({
+        type: "image_url",
+        image_url: { url: `data:${mimeType || "application/pdf"};base64,${fileBase64}` }
+      });
+    } else {
+      throw new Error("No text or file provided");
     }
 
+    // Use a vision-capable model — gemini-2.5-pro handles PDFs + complex layouts best.
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are a CV/resume parser. Extract all structured information accurately. Always call the extract_cv function." },
+          { role: "system", content: "You are an expert CV/resume parser. Read the entire document, including scanned pages and images, and extract all structured information accurately. ALWAYS call the extract_cv function with the data you find." },
           { role: "user", content: userContent }
         ],
         tools: [{
