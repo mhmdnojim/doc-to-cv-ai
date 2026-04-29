@@ -296,12 +296,14 @@ function attachHoverFrame(
     b.setAttribute("contenteditable", "false");
     b.title = position === "top" ? `Add ${opts.label} above` : `Add ${opts.label} below`;
     b.innerHTML = PLUS_ICON;
+    // top → upper-right corner, bottom → lower-left corner.
+    // Pulled outside the box (negative offsets) so they don't overlap content.
+    const corner = position === "top"
+      ? "top: -10px; right: -10px;"
+      : "bottom: -10px; left: -10px;";
     b.style.cssText = [
       "position: absolute",
-      "left: 50%",
-      "transform: translate(-50%, -50%)",
-      position === "top" ? "top: -4px" : "bottom: -4px",
-      position === "top" ? "" : "top: auto",
+      corner,
       "width: 22px",
       "height: 22px",
       "display: flex",
@@ -317,20 +319,9 @@ function attachHoverFrame(
       "transition: opacity .15s, transform .15s",
       "z-index: 6",
       "padding: 0",
-    ].filter(Boolean).join(";");
-    if (position === "bottom") {
-      b.style.transform = "translate(-50%, 50%)";
-    }
-    b.onmouseenter = () => {
-      b.style.transform = position === "top"
-        ? "translate(-50%, -50%) scale(1.15)"
-        : "translate(-50%, 50%) scale(1.15)";
-    };
-    b.onmouseleave = () => {
-      b.style.transform = position === "top"
-        ? "translate(-50%, -50%)"
-        : "translate(-50%, 50%)";
-    };
+    ].join(";");
+    b.onmouseenter = () => { b.style.transform = "scale(1.15)"; };
+    b.onmouseleave = () => { b.style.transform = "scale(1)"; };
     b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); onClick(); };
     return b;
   };
