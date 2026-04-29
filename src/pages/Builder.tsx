@@ -57,6 +57,10 @@ const Builder = () => {
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
   const [useSampleData, setUseSampleData] = useState(true);
 
+  // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
+  const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
+  const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
+
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
 
