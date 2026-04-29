@@ -13,6 +13,7 @@ import {
   GretaDarkTemplate, AlfredoTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
+import { PagedFrame } from "./PagedFrame";
 
 interface Props {
   data: CVData;
@@ -20,8 +21,7 @@ interface Props {
   userTemplateHtml?: string;     // when set, render this instead of built-in
 }
 
-export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
-  if (userTemplateHtml) return <UserTemplatePreview html={userTemplateHtml} data={data} />;
+const renderTemplate = (template: TemplateId | string, data: CVData) => {
   switch (template as TemplateId) {
     case "classic": return <ClassicTemplate data={data} />;
     case "minimal": return <MinimalTemplate data={data} />;
@@ -68,4 +68,9 @@ export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
     case "alfredo": return <AlfredoTemplate data={data} />;
     default: return <ModernTemplate data={data} />;
   }
+};
+
+export const CVPreview = ({ data, template, userTemplateHtml }: Props) => {
+  if (userTemplateHtml) return <UserTemplatePreview html={userTemplateHtml} data={data} />;
+  return <PagedFrame>{renderTemplate(template, data)}</PagedFrame>;
 };
