@@ -188,6 +188,9 @@ export function cleanupTools(root: HTMLElement) {
   root.querySelectorAll(`[${TOOL_ATTR}]`).forEach(el => el.remove());
   root.querySelectorAll<HTMLElement>(`[${SECTION_ATTR}]`).forEach(el => {
     el.style.position = "";
+    el.style.outline = "";
+    el.style.outlineColor = "";
+    el.style.outlineOffset = "";
     el.removeAttribute("draggable");
   });
 }
@@ -258,6 +261,97 @@ function makeDragHandle(): HTMLElement {
 export interface InjectOptions {
   onInsert: (where: SectionLocation) => void;
   onReorder?: () => void;
+}
+
+/**
+ * Attach a hover-frame to `el`: shows a border on hover plus a "+" button
+ * pinned to the top edge (insert above) and bottom edge (insert below).
+ * Used for both sections and subsections.
+ */
+function attachHoverFrame(
+  el: HTMLElement,
+  opts: {
+    label: string;                    // tooltip prefix, e.g. "section" or "subsection"
+    onInsertAbove: () => void;
+    onInsertBelow: () => void;
+    accent?: string;                  // hsl color string
+  }
+) {
+  const accent = opts.accent || "hsl(var(--primary))";
+
+  // Ensure positioning context for absolutely-placed buttons
+  const computed = window.getComputedStyle(el);
+  if (computed.position === "static") el.style.position = "relative";
+
+  // Hover frame: a transparent border that lights up on hover.
+  // Apply via inline outline so we don't disturb layout.
+  el.style.transition = (el.style.transition ? el.style.transition + ", " : "") + "outline-color .15s, background-color .15s";
+  el.style.outline = `1px dashed transparent`;
+  el.style.outlineOffset = "4px";
+  el.style.borderRadius = el.style.borderRadius || "4px";
+
+  const makePlus = (position: "top" | "bottom", onClick: () => void) => {
+    const b = document.createElement("button");
+    b.setAttribute(TOOL_ATTR, position === "top" ? "plus-above" : "plus-below");
+    b.setAttribute("contenteditable", "false");
+    b.title = position === "top" ? `Add ${opts.label} above` : `Add ${opts.label} below`;
+    b.innerHTML = PLUS_ICON;
+    b.style.cssText = [
+      "position: absolute",
+      "left: 50%",
+      "transform: translate(-50%, -50%)",
+      position === "top" ? "top: -4px" : "bottom: -4px",
+      position === "top" ? "" : "top: auto",
+      "width: 22px",
+      "height: 22px",
+      "display: flex",
+      "align-items: center",
+      "justify-content: center",
+      "border-radius: 9999px",
+      `background: ${accent}`,
+      "color: white",
+      "border: 2px solid white",
+      "box-shadow: 0 1px 4px rgba(0,0,0,0.2)",
+      "cursor: pointer",
+      "opacity: 0",
+      "transition: opacity .15s, transform .15s",
+      "z-index: 6",
+      "padding: 0",
+    ].filter(Boolean).join(";");
+    if (position === "bottom") {
+      b.style.transform = "translate(-50%, 50%)";
+    }
+    b.onmouseenter = () => {
+      b.style.transform = position === "top"
+        ? "translate(-50%, -50%) scale(1.15)"
+        : "translate(-50%, 50%) scale(1.15)";
+    };
+    b.onmouseleave = () => {
+      b.style.transform = position === "top"
+        ? "translate(-50%, -50%)"
+        : "translate(-50%, 50%)";
+    };
+    b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); onClick(); };
+    return b;
+  };
+
+  const plusTop = makePlus("top", opts.onInsertAbove);
+  const plusBottom = makePlus("bottom", opts.onInsertBelow);
+  el.appendChild(plusTop);
+  el.appendChild(plusBottom);
+
+  el.addEventListener("mouseenter", () => {
+    el.style.outlineColor = accent.replace(")", " / 0.5)").replace("hsl(var", "hsl(var");
+    // Fallback for plain colors
+    if (!el.style.outlineColor) el.style.outlineColor = accent;
+    plusTop.style.opacity = "1";
+    plusBottom.style.opacity = "1";
+  });
+  el.addEventListener("mouseleave", () => {
+    el.style.outlineColor = "transparent";
+    plusTop.style.opacity = "0";
+    plusBottom.style.opacity = "0";
+  });
 }
 
 // "+ Add subsection here" — same visual style as gap button, different label.
@@ -348,13 +442,12 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     }, 30);
   };
 
-  items.forEach((item, i) => {
-    const gap = makeSubsectionGapButton(() => insertSubAt(item, "before"));
-    container.insertBefore(gap, item);
-    if (i === items.length - 1) {
-      const gapEnd = makeSubsectionGapButton(() => insertSubAt(item, "after"));
-      container.insertBefore(gapEnd, item.nextSibling);
-    }
+  items.forEach((item) => {
+    attachHoverFrame(item, {
+      label: "subsection",
+      onInsertAbove: () => insertSubAt(item, "before"),
+      onInsertBelow: () => insertSubAt(item, "after"),
+    });
   });
 }
 
@@ -431,17 +524,14 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         setTimeout(() => injectSectionTools(root, opts), 50);
       });
 
-      // Gap button BEFORE this section (idx 0 = "start of column")
-      const gap = makeGapButton(() => {
-        opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id });
+      // Hover frame: "+" above (insert before / start) and "+" below (insert after / end)
+      attachHoverFrame(sec.el, {
+        label: "section",
+        onInsertAbove: () =>
+          opts.onInsert(idx === 0 ? { mode: "start", column: col } : { mode: "before", sectionId: sec.id }),
+        onInsertBelow: () =>
+          opts.onInsert(idx === inCol.length - 1 ? { mode: "end", column: col } : { mode: "after", sectionId: sec.id }),
       });
-      sec.el.parentElement?.insertBefore(gap, sec.el);
-
-      // Gap button AFTER the last section
-      if (idx === inCol.length - 1) {
-        const gapEnd = makeGapButton(() => opts.onInsert({ mode: "end", column: col }));
-        sec.el.parentElement?.insertBefore(gapEnd, sec.el.nextSibling);
-      }
 
       // Inject "Add subsection here" gaps for repeating items inside this section.
       injectSubsectionGaps(sec.el, opts);
