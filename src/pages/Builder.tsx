@@ -148,7 +148,7 @@ const Builder = () => {
       if (id) {
         const { data: row } = await supabase.from("saved_cvs").select("*").eq("id", id).maybeSingle();
         if (row) {
-          setData(row.data as CVData);
+          setData(row.data as unknown as CVData);
           setTemplate(row.template);
           setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
           setManualPages(row.manual_pages || 1);
@@ -165,7 +165,7 @@ const Builder = () => {
         const row = rows[0];
         setSavedCvId(row.id);
         localStorage.setItem("cv-builder-saved-id", row.id);
-        setData(row.data as CVData);
+        setData(row.data as unknown as CVData);
         setTemplate(row.template);
         setBlankPageHtml((row.blank_pages as Record<number, string>) || {});
         setManualPages(row.manual_pages || 1);
