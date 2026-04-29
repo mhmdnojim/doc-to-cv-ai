@@ -398,7 +398,7 @@ const Builder = () => {
             </div>
 
             <p className="text-xs text-muted-foreground text-center">
-              ✨ Click any text to edit · Hover any item for delete · Use + buttons on each section heading to add
+              ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
             </p>
 
             {/* Editable CV preview */}
