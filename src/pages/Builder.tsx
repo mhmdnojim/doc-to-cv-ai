@@ -117,41 +117,51 @@ const Builder = () => {
 
   // Update array sections directly
   const addExperience = () => {
+    const focusText = "New Position";
     const next = { ...data, experience: [...data.experience, {
       id: Date.now().toString(),
-      position: "New Position", company: "Company Name",
+      position: focusText, company: "Company Name",
       startDate: "2024", endDate: "Present", location: "City",
       description: "Click to edit your role description and key achievements.",
     }]};
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(next);
+    setPendingFocusText(focusText);
   };
   const addEducation = () => {
+    const focusText = "University Name";
     const next = { ...data, education: [...data.education, {
       id: Date.now().toString(),
-      school: "University Name", degree: "Degree", field: "Field of Study",
+      school: focusText, degree: "Degree", field: "Field of Study",
       startDate: "2020", endDate: "2024",
     }]};
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(next);
+    setPendingFocusText(focusText);
   };
   const addSkill = () => {
+    const focusText = `New skill ${data.skills.length + 1}`;
     localStorage.setItem(HAS_DATA_KEY, "1");
-    setData({ ...data, skills: [...data.skills, "New skill"] });
+    setData({ ...data, skills: [...data.skills, focusText] });
+    setPendingFocusText(focusText);
   };
   const addLanguage = () => {
+    const focusText = `Language ${data.languages.length + 1}`;
     localStorage.setItem(HAS_DATA_KEY, "1");
-    setData({ ...data, languages: [...data.languages, { id: Date.now().toString(), name: "Language", level: "Fluent" }] });
+    setData({ ...data, languages: [...data.languages, { id: Date.now().toString(), name: focusText, level: "Fluent" }] });
+    setPendingFocusText(focusText);
   };
   const addProject = () => {
+    const focusText = `Project ${data.projects.length + 1}`;
     const next = { ...data, projects: [...data.projects, {
       id: Date.now().toString(),
-      name: "Project Name",
+      name: focusText,
       description: "Brief description of the project and its impact.",
       link: "",
     }]};
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData(next);
+    setPendingFocusText(focusText);
   };
   const addContact = () => {
     const placeholders: Record<"email" | "phone" | "location" | "website", string> = {
@@ -168,6 +178,7 @@ const Builder = () => {
     }
     localStorage.setItem(HAS_DATA_KEY, "1");
     setData({ ...data, [next]: placeholders[next] });
+    setPendingFocusText(placeholders[next]);
   };
 
   // Delete helpers
