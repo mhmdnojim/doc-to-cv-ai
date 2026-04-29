@@ -43,6 +43,7 @@ const Builder = () => {
         skills: addSkill, "core competencies": addSkill, stack: addSkill,
         languages: addLanguage,
         projects: addProject,
+        contact: addContact, "contact info": addContact, "get in touch": addContact,
       };
       headings.forEach(h => {
         if (h.querySelector("[data-add-btn]")) return;
