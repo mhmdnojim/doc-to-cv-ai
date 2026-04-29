@@ -358,15 +358,21 @@ const Builder = () => {
     setSearchParams({ template: t });
   };
 
-  const handleExport = () => {
-    toast.success(`Opening print dialog… ${totalPages} page${totalPages > 1 ? "s" : ""}`);
+  const handleExport = async () => {
+    // Save to account first (if signed in)
+    if (user) {
+      toast.loading("Saving CV to your account…", { id: "export-save" });
+      await saveCv(true);
+      toast.success("Saved — opening print dialog", { id: "export-save" });
+    } else {
+      toast.success(`Opening print dialog… ${totalPages} page${totalPages > 1 ? "s" : ""}`);
+    }
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
         const clone = editableRef.current.cloneNode(true) as HTMLElement;
         clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
         printArea.innerHTML = clone.innerHTML;
-        // Append blank pages for any user-added pages beyond content
         const extra = Math.max(0, manualPages - measuredPages);
         for (let i = 0; i < extra; i++) {
           const blank = document.createElement("div");
@@ -376,7 +382,7 @@ const Builder = () => {
         }
       }
       window.print();
-    }, 200);
+    }, 250);
   };
 
   // Update array sections directly
