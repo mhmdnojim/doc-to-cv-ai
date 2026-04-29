@@ -1,6 +1,30 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import mammoth from "npm:mammoth@1.8.0";
+import { unzip } from "https://deno.land/x/zipit@1.3.5/mod.ts";
+
+// Extract plain text from a .docx buffer by unzipping and parsing word/document.xml.
+async function extractDocxText(bytes: Uint8Array): Promise<string> {
+  const entries = await unzip(bytes);
+  const docEntry = entries.find((e: any) => e.name === "word/document.xml");
+  if (!docEntry) throw new Error("word/document.xml not found in .docx");
+  const xml = new TextDecoder("utf-8").decode(docEntry.data);
+  // Convert paragraph/line breaks to newlines, then strip remaining tags.
+  const withBreaks = xml
+    .replace(/<w:p[^>]*\/>/g, "\n")
+    .replace(/<\/w:p>/g, "\n")
+    .replace(/<w:br[^>]*\/?>/g, "\n")
+    .replace(/<w:tab[^>]*\/?>/g, "\t");
+  const text = withBreaks
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
