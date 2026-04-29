@@ -274,54 +274,129 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
               </div>
             )}
 
-            {active === "magic" && (
-              <div className="space-y-3">
-                <div className="rounded-lg p-3 bg-gradient-to-br from-violet-50 to-cyan-50 border border-primary/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Wand2 className="w-4 h-4 text-primary" />
-                    <span className="font-semibold text-sm">Magic Write</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Select text in your CV and ask AI to rewrite, shorten, expand, or follow your instruction.
-                  </p>
-                </div>
+          </div>
+        </div>
+      )}
 
-                {lastSelection ? (
-                  <div className="text-[11px] p-2 rounded bg-muted/40 border border-border">
-                    <span className="font-semibold">Selected:</span> {lastSelection.slice(0, 100)}{lastSelection.length > 100 ? "…" : ""}
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-muted-foreground italic">No selection — AI output will be copied to clipboard.</p>
+      {/* Magic Write floating popup */}
+      {magicOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 backdrop-blur-sm p-4 pt-24 print:hidden"
+          onClick={() => setMagicOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-card border border-primary/30 rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-gradient-to-r from-violet-50 to-cyan-50 dark:from-violet-950/30 dark:to-cyan-950/30">
+              <div className="flex items-center gap-2">
+                {generatedText && (
+                  <button
+                    onClick={() => setGeneratedText("")}
+                    className="text-muted-foreground hover:text-foreground"
+                    title="Back"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
                 )}
+                <Wand2 className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm">Magic Write</span>
+              </div>
+              <button
+                onClick={() => setMagicOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-                <div className="grid grid-cols-3 gap-1.5">
-                  <Button variant="outline" size="sm" disabled={busy || !lastSelection} onClick={() => runMagic("improve")}>Improve</Button>
-                  <Button variant="outline" size="sm" disabled={busy || !lastSelection} onClick={() => runMagic("shorten")}>Shorten</Button>
-                  <Button variant="outline" size="sm" disabled={busy || !lastSelection} onClick={() => runMagic("expand")}>Expand</Button>
-                </div>
+            {/* Body */}
+            <div className="p-5">
+              {!generatedText ? (
+                <>
+                  {lastSelection ? (
+                    <div className="text-[11px] p-2 mb-3 rounded bg-muted/40 border border-border">
+                      <span className="font-semibold">Selected:</span> {lastSelection.slice(0, 120)}{lastSelection.length > 120 ? "…" : ""}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic mb-3">
+                      Tip: select text in your CV first to rewrite it, or just describe what you want.
+                    </p>
+                  )}
 
-                <div>
-                  <label className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Or describe what you want</label>
                   <Textarea
                     value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    placeholder="e.g. Make it sound more senior, add metrics…"
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Describe your writing task (5+ words)…"
                     rows={4}
-                    className="mt-1.5 text-sm"
+                    className="text-sm resize-none"
                     disabled={busy}
+                    autoFocus
                   />
-                </div>
 
-                <Button
-                  onClick={() => runMagic()}
-                  disabled={busy || (!prompt.trim() && !lastSelection)}
-                  className="w-full bg-gradient-primary"
-                >
-                  {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                  {busy ? "Writing…" : lastSelection ? "Rewrite selection" : "Generate text"}
-                </Button>
-              </div>
-            )}
+                  {lastSelection && (
+                    <div className="mt-3 grid grid-cols-3 gap-1.5">
+                      <Button variant="outline" size="sm" disabled={busy} onClick={() => generateMagic("improve")}>Improve</Button>
+                      <Button variant="outline" size="sm" disabled={busy} onClick={() => generateMagic("shorten")}>Shorten</Button>
+                      <Button variant="outline" size="sm" disabled={busy} onClick={() => generateMagic("expand")}>Expand</Button>
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      onClick={() => generateMagic()}
+                      disabled={busy || (!prompt.trim() && !lastSelection)}
+                      className="bg-gradient-primary"
+                    >
+                      {busy ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
+                      ) : (
+                        <>Generate <ArrowRight className="w-4 h-4 ml-2" /></>
+                      )}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-border bg-muted/20 p-4 text-sm whitespace-pre-wrap leading-relaxed">
+                    {generatedText}
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    AI can make mistakes — please check for accuracy before inserting.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2 justify-between">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => generateMagic()}
+                        title="Regenerate"
+                      >
+                        <RotateCw className="w-3.5 h-3.5 mr-1.5" />
+                        Try again
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={copyGenerated}
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-1.5" />
+                        Copy
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={insertGenerated}
+                      className="bg-gradient-primary"
+                    >
+                      Insert into CV
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
