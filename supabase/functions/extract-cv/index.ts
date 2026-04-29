@@ -1,6 +1,33 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import mammoth from "npm:mammoth@1.8.0";
+import { BlobReader, ZipReader, TextWriter } from "https://deno.land/x/zipjs@v2.7.45/index.js";
+
+// Extract plain text from a .docx buffer by unzipping and parsing word/document.xml.
+async function extractDocxText(bytes: Uint8Array): Promise<string> {
+  const blob = new Blob([bytes]);
+  const reader = new ZipReader(new BlobReader(blob));
+  const entries = await reader.getEntries();
+  const docEntry = entries.find((e: any) => e.filename === "word/document.xml");
+  if (!docEntry || !docEntry.getData) throw new Error("word/document.xml not found in .docx");
+  const xml: string = await docEntry.getData(new TextWriter());
+  await reader.close();
+  // Convert paragraph/line breaks to newlines, then strip remaining tags.
+  const withBreaks = xml
+    .replace(/<w:p[^>]*\/>/g, "\n")
+    .replace(/<\/w:p>/g, "\n")
+    .replace(/<w:br[^>]*\/?>/g, "\n")
+    .replace(/<w:tab[^>]*\/?>/g, "\t");
+  const text = withBreaks
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,8 +120,8 @@ serve(async (req) => {
       if (isDocx) {
         try {
           const buf = decodeB64(fileBase64);
-          const result = await mammoth.extractRawText({ arrayBuffer: buf.buffer });
-          extractedText = result.value || "";
+          extractedText = await extractDocxText(buf);
+          if (!extractedText) throw new Error("empty docx text");
         } catch (err) {
           console.error("docx extract failed:", err);
           throw new Error("Failed to read .docx file. Try exporting it as PDF and re-uploading.");
