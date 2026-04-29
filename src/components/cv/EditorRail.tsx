@@ -97,6 +97,28 @@ export const EditorRail = ({ templatesPanel, editorRef }: Props) => {
     }
   };
 
+  const setFontFamily = (family: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      span.style.fontFamily = family;
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+        savedRange.current = newRange.cloneRange();
+      } catch (e) { console.error(e); }
+    } else if (editorRef.current) {
+      editorRef.current.style.fontFamily = family;
+      toast.success("Font applied to whole CV");
+    }
+  };
+
   const generateMagic = async (mode?: "improve" | "shorten" | "expand") => {
     const selection = lastSelection.trim();
     if (!selection && !prompt.trim()) {
