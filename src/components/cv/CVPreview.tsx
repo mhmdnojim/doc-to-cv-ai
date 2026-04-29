@@ -3,6 +3,7 @@ import {
   ModernTemplate, ClassicTemplate, MinimalTemplate, CreativeTemplate, ExecutiveTemplate, TechTemplate,
   ElegantTemplate, ProfessionalTemplate, CorporateTemplate, DesignerTemplate, AcademicTemplate,
   CompactTemplate, BoldTemplate, PhotoTemplate,
+  NavarroTemplate, MitchellTemplate, FloresTemplate, CortesTemplate, AlvarezTemplate, SilvaTemplate,
 } from "./templates";
 import { UserTemplatePreview } from "./UserTemplatePreview";
 
