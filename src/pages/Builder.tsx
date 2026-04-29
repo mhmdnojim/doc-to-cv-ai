@@ -31,6 +31,37 @@ const Builder = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
+  // Inject "+" buttons next to section headings inside the editable CV
+  useEffect(() => {
+    const root = editableRef.current;
+    if (!root) return;
+    const t = setTimeout(() => {
+      const headings = root.querySelectorAll<HTMLElement>("h2, h3");
+      const sectionMap: Record<string, () => void> = {
+        experience: addExperience, "work experience": addExperience, "professional experience": addExperience,
+        education: addEducation,
+        skills: addSkill, "core competencies": addSkill, stack: addSkill,
+        languages: addLanguage,
+        projects: addProject,
+      };
+      headings.forEach(h => {
+        if (h.querySelector("[data-add-btn]")) return;
+        const text = (h.textContent || "").trim().toLowerCase().replace(/[\/\\]+/g, "").replace(/^\W+|\W+$/g, "");
+        const key = Object.keys(sectionMap).find(k => text.includes(k));
+        if (!key) return;
+        const btn = document.createElement("button");
+        btn.setAttribute("data-add-btn", "1");
+        btn.setAttribute("contenteditable", "false");
+        btn.title = `Add ${key}`;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
+        btn.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:8px;border-radius:9999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));cursor:pointer;border:none;vertical-align:middle;flex-shrink:0;";
+        btn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); sectionMap[key](); };
+        h.appendChild(btn);
+      });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [data, template]);
+
   const handleTemplateChange = (t: TemplateId) => {
     setTemplate(t);
     setSearchParams({ template: t });
