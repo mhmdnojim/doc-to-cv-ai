@@ -439,13 +439,12 @@ function injectSubsectionGaps(sec: HTMLElement, opts: InjectOptions) {
     }, 30);
   };
 
-  items.forEach((item, i) => {
-    const gap = makeSubsectionGapButton(() => insertSubAt(item, "before"));
-    container.insertBefore(gap, item);
-    if (i === items.length - 1) {
-      const gapEnd = makeSubsectionGapButton(() => insertSubAt(item, "after"));
-      container.insertBefore(gapEnd, item.nextSibling);
-    }
+  items.forEach((item) => {
+    attachHoverFrame(item, {
+      label: "subsection",
+      onInsertAbove: () => insertSubAt(item, "before"),
+      onInsertBelow: () => insertSubAt(item, "after"),
+    });
   });
 }
 
