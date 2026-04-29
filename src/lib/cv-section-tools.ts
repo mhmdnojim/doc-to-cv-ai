@@ -343,6 +343,9 @@ export function injectSectionTools(root: HTMLElement, opts: InjectOptions) {
         const gapEnd = makeGapButton(() => opts.onInsert({ mode: "end", column: col }));
         sec.el.parentElement?.insertBefore(gapEnd, sec.el.nextSibling);
       }
+
+      // Inject "Add subsection here" gaps for repeating items inside this section.
+      injectSubsectionGaps(sec.el, opts);
     });
   });
 
