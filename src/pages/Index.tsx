@@ -3,7 +3,10 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
-import { FileText, Search, Sparkles, Wand2, Upload, Star } from "lucide-react";
+import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
+import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
+import { useAuth } from "@/hooks/useAuth";
+import loginCube from "@/assets/login-cube.png";
 
 const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] = [
   { label: "All",          icon: "✨", ids: "all" },
@@ -16,7 +19,9 @@ const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] =
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [query, setQuery] = useState("");
+  const [showUpload, setShowUpload] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
 
   const filtered = useMemo(() => {
@@ -38,13 +43,26 @@ const Index = () => {
       {/* Nav */}
       <nav className="sticky top-0 z-40 backdrop-blur-xl bg-background/70 border-b border-border">
         <div className="container flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <FileText className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold tracking-tight">Resumé</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => (user ? signOut() : navigate("/auth"))}
+              title={user ? "Sign out" : "Sign in"}
+              aria-label={user ? "Sign out" : "Sign in"}
+              className="w-10 h-10 rounded-xl overflow-hidden border border-border hover:shadow-glow transition-base bg-white"
+            >
+              <img src={loginCube} alt="Login" width={40} height={40} className="w-full h-full object-cover" />
+            </button>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+                <FileText className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="font-semibold tracking-tight">Resumé</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowUpload(true)} className="gap-1.5">
+              <ImagePlus className="w-4 h-4" /> Create new template
+            </Button>
             <Link to="/templates"><Button variant="ghost" size="sm">Templates</Button></Link>
             <Link to="/builder"><Button size="sm" className="bg-gradient-primary shadow-glow">Build my CV</Button></Link>
           </div>
@@ -110,11 +128,35 @@ const Index = () => {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">No templates match your search.</div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map(t => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Permanent Create-new-template card */}
+          <button
+            onClick={() => setShowUpload(true)}
+            className="group text-left"
+            aria-label="Create new template from screenshot"
+          >
+            <div className="aspect-[210/297] rounded-xl overflow-hidden border-2 border-dashed border-primary/40 bg-gradient-to-br from-violet-50 via-white to-cyan-50 shadow-soft group-hover:shadow-elegant group-hover:border-primary transition-base relative flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow mb-4">
+                <ImagePlus className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <h3 className="font-semibold text-base text-slate-900">Create new template</h3>
+              <p className="text-xs text-muted-foreground mt-2 px-2">
+                Upload a screenshot of any CV and AI will recreate it as a template.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                <Sparkles className="w-3.5 h-3.5" /> AI powered
+              </span>
+            </div>
+            <div className="mt-3">
+              <h3 className="font-semibold text-sm">Your template</h3>
+              <p className="text-xs text-muted-foreground line-clamp-1">Upload a screenshot to begin</p>
+            </div>
+          </button>
+
+          {filtered.length === 0 ? (
+            <div className="col-span-full text-center py-20 text-muted-foreground">No templates match your search.</div>
+          ) : (
+            filtered.map(t => (
               <button
                 key={t.id}
                 onClick={() => navigate(`/builder?template=${t.id}`)}
@@ -133,14 +175,16 @@ const Index = () => {
                   <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>
                 </div>
               </button>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </section>
 
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground">With US — make your CV count</div>
       </footer>
+
+      <TemplateUploadDialog open={showUpload} onOpenChange={setShowUpload} onCreated={() => { /* template saved */ }} />
     </div>
   );
 };
