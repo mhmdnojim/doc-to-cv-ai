@@ -5,7 +5,7 @@ import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
-import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, LogIn, LogOut, Eye, EyeOff, ShieldCheck, FilePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -39,6 +39,28 @@ const Builder = () => {
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
+
+  // ===== Multi-page support =====
+  // A4 at 96dpi: 297mm = 1122.5px
+  const PAGE_HEIGHT_PX = 1122.5;
+  const [manualPages, setManualPages] = useState(1);     // user-requested minimum
+  const [measuredPages, setMeasuredPages] = useState(1); // measured from content
+  const totalPages = Math.max(manualPages, measuredPages);
+
+  // Observe content height to update auto-page count
+  useEffect(() => {
+    if (!editableRef.current) return;
+    const el = editableRef.current;
+    const update = () => {
+      const h = el.scrollHeight;
+      setMeasuredPages(Math.max(1, Math.ceil(h / PAGE_HEIGHT_PX)));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [template, userTemplateHtml]);
+
 
   const fetchUserTemplates = useCallback(async () => {
     // Load all visible (public + own + admin) templates
@@ -227,13 +249,21 @@ const Builder = () => {
   };
 
   const handleExport = () => {
-    toast.success("Opening print dialog… save as PDF");
+    toast.success(`Opening print dialog… ${totalPages} page${totalPages > 1 ? "s" : ""}`);
     setTimeout(() => {
       const printArea = document.getElementById("cv-print-area");
       if (printArea && editableRef.current) {
         const clone = editableRef.current.cloneNode(true) as HTMLElement;
         clone.querySelectorAll("[data-add-btn], [data-section-ctrl]").forEach(el => el.remove());
         printArea.innerHTML = clone.innerHTML;
+        // Append blank pages for any user-added pages beyond content
+        const extra = Math.max(0, manualPages - measuredPages);
+        for (let i = 0; i < extra; i++) {
+          const blank = document.createElement("div");
+          blank.className = "page-break";
+          blank.style.cssText = "height: 297mm; width: 210mm;";
+          printArea.appendChild(blank);
+        }
       }
       window.print();
     }, 200);
@@ -351,6 +381,18 @@ const Builder = () => {
                 <LogOut className="w-4 h-4" />
               </Button>
             )}
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted/60 rounded-md px-2 py-1.5 border border-border">
+              <FileText className="w-3.5 h-3.5" />
+              <span>Page {totalPages === 1 ? "1" : `1 / ${totalPages}`}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setManualPages(p => p + 1); toast.success(`Page ${manualPages + 1} added`); }}
+              title="Add a blank page"
+            >
+              <FilePlus className="w-4 h-4 mr-2" /> Add page
+            </Button>
             <Button variant={showTemplates ? "default" : "outline"} size="sm" onClick={() => setShowTemplates(s => !s)}>
               <LayoutTemplate className="w-4 h-4 mr-2" />Templates
             </Button>
@@ -536,20 +578,50 @@ const Builder = () => {
               ✨ Click any text to edit · <span className="text-primary">+</span> on a heading adds an item · <span className="text-destructive">✕</span> on a heading deletes the whole section
             </p>
 
-            {/* Editable CV preview */}
+            {/* Editable CV preview — paginated A4 sheets */}
             <div className="flex justify-center">
               <div
-                className="rounded-xl shadow-elegant overflow-hidden bg-white origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
+                className="origin-top scale-[0.6] sm:scale-[0.7] lg:scale-[0.8] xl:scale-90"
                 style={{ transformOrigin: "top center" }}
               >
                 <div
-                  ref={editableRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  spellCheck
-                  className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
+                  className="cv-page-stack relative bg-white shadow-elegant rounded-xl overflow-hidden"
+                  style={{
+                    width: "210mm",
+                    minHeight: `calc(297mm * ${totalPages})`,
+                    backgroundImage: totalPages > 1
+                      ? `repeating-linear-gradient(to bottom, transparent 0, transparent calc(297mm - 1px), hsl(var(--border)) calc(297mm - 1px), hsl(var(--border)) 297mm)`
+                      : undefined,
+                  }}
                 >
-                  <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                  <div
+                    ref={editableRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    spellCheck
+                    className="editable-cv outline-none focus:outline-none [&_*:focus]:outline-2 [&_*:focus]:outline-primary [&_*:focus]:outline-dashed [&_*:focus]:outline-offset-2"
+                  >
+                    <CVPreview data={data} template={template} userTemplateHtml={userTemplateHtml} />
+                  </div>
+                  {/* Page number badges */}
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute right-3 text-[10px] font-medium text-muted-foreground bg-white/80 backdrop-blur px-2 py-0.5 rounded-full border border-border print:hidden pointer-events-none"
+                      style={{ top: `calc(297mm * ${i} + 8px)` }}
+                    >
+                      Page {i + 1} / {totalPages}
+                      {i + 1 > measuredPages && (
+                        <button
+                          onClick={() => setManualPages(p => Math.max(1, p - 1))}
+                          className="ml-1.5 text-destructive hover:underline pointer-events-auto"
+                          title="Remove this blank page"
+                        >
+                          remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
