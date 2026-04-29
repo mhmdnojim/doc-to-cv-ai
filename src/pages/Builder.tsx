@@ -54,6 +54,7 @@ const Builder = () => {
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
   const [blankPageHtml, setBlankPageHtml] = useState<Record<number, string>>({});
   const [hiddenPages, setHiddenPages] = useState<Record<number, boolean>>({});
+  const [useSampleData, setUseSampleData] = useState(false);
 
   const activeUserTemplate = userTemplates.find(t => t.id === template);
   const userTemplateHtml = activeUserTemplate?.html;
