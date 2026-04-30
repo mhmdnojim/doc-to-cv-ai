@@ -26,6 +26,23 @@ const Index = () => {
   const [query, setQuery] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
+  const [community, setCommunity] = useState<CommunityTpl[]>([]);
+  const [loadingCommunity, setLoadingCommunity] = useState(true);
+
+  const fetchCommunity = async () => {
+    setLoadingCommunity(true);
+    const { data } = await supabase
+      .from("user_templates")
+      .select("id,name,html")
+      .eq("is_public", true)
+      .eq("is_disabled", false)
+      .order("created_at", { ascending: false })
+      .limit(60);
+    setCommunity(data || []);
+    setLoadingCommunity(false);
+  };
+
+  useEffect(() => { fetchCommunity(); }, []);
 
   const filtered = useMemo(() => {
     const cat = CATEGORIES.find(c => c.label === activeCat);
