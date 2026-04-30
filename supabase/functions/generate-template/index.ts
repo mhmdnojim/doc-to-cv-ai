@@ -49,14 +49,15 @@ serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-3-pro-preview",
         messages: [
           { role: "system", content: SYSTEM },
           { role: "user", content: [
-            { type: "text", text: `Generate a CV template that visually replicates this screenshot. Template name: "${name || "User template"}".` },
+            { type: "text", text: `Generate a CV template that visually replicates this screenshot AS CLOSELY AS POSSIBLE — match exact colors (sample as hex), exact font family family, weights, sizes, spacing, dividers, icons, and the column layout. Template name: "${name || "User template"}". Return ONLY the HTML.` },
             { type: "image_url", image_url: { url: imageUrl } },
           ] },
         ],
+        temperature: 0.2,
       }),
     });
 
