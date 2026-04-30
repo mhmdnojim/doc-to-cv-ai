@@ -24,12 +24,41 @@ export const getOAuthBrokerUrl = () => {
   return "/~oauth/initiate";
 };
 
+/**
+ * GitHub Pages return URL — used to bounce the user back from the Lovable
+ * domain (where OAuth completes) to the original GitHub Pages site.
+ */
+const GH_RETURN_PARAM = "gh_return";
+
 export const getOAuthRedirectUrl = (path = "") => {
   const cleanPath = path.replace(/^\/+/, "");
 
   if (typeof window !== "undefined" && window.location.hostname.endsWith(".github.io")) {
-    return new URL(cleanPath, "https://doc-to-cv-ai.lovable.app/").toString();
+    // Send OAuth back to the Lovable domain (allowlisted), but tell that
+    // domain where to forward the user (and their session) afterwards.
+    const ghReturn = new URL(
+      `${import.meta.env.BASE_URL || "/"}${cleanPath}`,
+      window.location.origin,
+    ).toString();
+
+    const url = new URL(cleanPath, "https://doc-to-cv-ai.lovable.app/");
+    url.searchParams.set(GH_RETURN_PARAM, ghReturn);
+    return url.toString();
   }
 
   return getAppRedirectUrl(path);
+};
+
+export const getGitHubReturnUrl = () => {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get(GH_RETURN_PARAM);
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (!parsed.hostname.endsWith(".github.io")) return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 };
