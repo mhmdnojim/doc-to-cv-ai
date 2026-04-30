@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { getAppRedirectUrl } from "@/lib/app-url";
+import { signInWithCloudOAuth } from "@/lib/cloud-oauth";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, FileText } from "lucide-react";
 
@@ -26,7 +26,7 @@ export const LoginDialog = ({ open, onOpenChange }: Props) => {
   const handleGoogle = async () => {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: getAppRedirectUrl() });
+      const result = await signInWithCloudOAuth("google", { redirect_uri: getAppRedirectUrl() });
       if (result.error) throw result.error;
       if (!result.redirected) {
         toast.success("Signed in!");
