@@ -1,12 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
-import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
+import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus, Users } from "lucide-react";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPill } from "@/components/AuthPill";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CommunityTpl { id: string; name: string; html: string; }
 
 const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] = [
   { label: "All",          icon: "✨", ids: "all" },
