@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getAppRedirectUrl } from "@/lib/app-url";
+import { getAppRedirectUrl, getOAuthRedirectUrl } from "@/lib/app-url";
 import { signInWithCloudOAuth } from "@/lib/cloud-oauth";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ export default function Auth() {
   const handleGoogle = async () => {
     setBusy(true);
     try {
-      const result = await signInWithCloudOAuth("google", { redirect_uri: getAppRedirectUrl("builder") });
+      const result = await signInWithCloudOAuth("google", { redirect_uri: getOAuthRedirectUrl("builder") });
       if (result.error) throw result.error;
     } catch (err: any) {
       toast.error(err.message || "Google sign-in failed");
