@@ -93,7 +93,7 @@ const Templates = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {community.map(t => (
-                <div key={t.id} className="group cursor-pointer" onClick={() => navigate(`/builder?userTemplate=${t.id}`)}>
+                <div key={t.id} className="group cursor-pointer" onClick={() => navigate(`/builder?template=${t.id}`)}>
                   <div className="rounded-xl overflow-hidden border border-border bg-card shadow-soft group-hover:shadow-elegant transition-base">
                     <div className="aspect-[210/297] overflow-hidden bg-muted relative">
                       <div className="absolute inset-0 origin-top-left scale-[0.38] sm:scale-[0.42]">
