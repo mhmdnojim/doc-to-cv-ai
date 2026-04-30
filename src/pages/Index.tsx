@@ -1,12 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TEMPLATES, SAMPLE_CV, TemplateId } from "@/lib/cv-types";
 import { CVPreview } from "@/components/cv/CVPreview";
-import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus } from "lucide-react";
+import { FileText, Search, Sparkles, Wand2, Upload, Star, ImagePlus, Users } from "lucide-react";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPill } from "@/components/AuthPill";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CommunityTpl { id: string; name: string; html: string; }
 
 const CATEGORIES: { label: string; icon: string; ids: TemplateId[] | "all" }[] = [
   { label: "All",          icon: "✨", ids: "all" },
@@ -23,6 +26,23 @@ const Index = () => {
   const [query, setQuery] = useState("");
   const [showUpload, setShowUpload] = useState(false);
   const [activeCat, setActiveCat] = useState("All");
+  const [community, setCommunity] = useState<CommunityTpl[]>([]);
+  const [loadingCommunity, setLoadingCommunity] = useState(true);
+
+  const fetchCommunity = async () => {
+    setLoadingCommunity(true);
+    const { data } = await supabase
+      .from("user_templates")
+      .select("id,name,html")
+      .eq("is_public", true)
+      .eq("is_disabled", false)
+      .order("created_at", { ascending: false })
+      .limit(60);
+    setCommunity(data || []);
+    setLoadingCommunity(false);
+  };
+
+  useEffect(() => { fetchCommunity(); }, []);
 
   const filtered = useMemo(() => {
     const cat = CATEGORIES.find(c => c.label === activeCat);
@@ -160,6 +180,53 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Community templates */}
+      <section className="container pb-14">
+        <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Users className="w-6 h-6 text-primary" /> Community templates
+            </h2>
+            <p className="text-muted-foreground mt-1 text-sm">
+              AI-generated from screenshots by the community. Free for everyone to use.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setShowUpload(true)}>
+            <ImagePlus className="w-4 h-4 mr-1.5" /> Add yours
+          </Button>
+        </div>
+
+        {loadingCommunity ? (
+          <div className="text-sm text-muted-foreground">Loading community templates…</div>
+        ) : community.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border p-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              No community templates yet. Be the first — click <strong>“Create new template”</strong> above.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {community.map(t => (
+              <button
+                key={t.id}
+                onClick={() => navigate(`/builder?template=${t.id}`)}
+                className="group text-left"
+              >
+                <div className="aspect-[210/297] rounded-xl overflow-hidden border border-border bg-white shadow-soft group-hover:shadow-elegant transition-base relative">
+                  <div className="absolute inset-0 origin-top-left scale-[0.32]">
+                    <CVPreview data={SAMPLE_CV} template="modern" userTemplateHtml={t.html} />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <h3 className="font-semibold text-sm truncate">{t.name}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-1">Community · AI-generated</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground">With US — make your CV count</div>
       </footer>
@@ -167,7 +234,10 @@ const Index = () => {
       <TemplateUploadDialog
         open={showUpload}
         onOpenChange={setShowUpload}
-        onCreated={(id) => { if (id) navigate(`/builder?template=${id}`); }}
+        onCreated={(id) => {
+          fetchCommunity();
+          if (id) navigate(`/builder?template=${id}`);
+        }}
       />
       
     </div>
