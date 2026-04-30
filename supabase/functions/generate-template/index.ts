@@ -18,7 +18,7 @@ REQUIREMENTS:
 6. MATCH LAYOUT: if the screenshot has a sidebar, use display:flex or CSS grid with the same column ratio. Reproduce header bands, colored shapes, dividers, bullet styles, and icon shapes (use inline SVG for icons, NEVER external icon fonts).
 7. MATCH SPACING: estimate paddings/margins in px so visual rhythm matches.
 8. Replicate the section ordering of the screenshot AS CLOSELY AS POSSIBLE.
-5. Use these EXACT placeholder tokens that will be substituted at render time. Do NOT invent other tokens:
+9. Use these EXACT placeholder tokens that will be substituted at render time. Do NOT invent other tokens:
    {{fullName}}, {{jobTitle}}, {{email}}, {{phone}}, {{location}}, {{website}}, {{summary}}
    PHOTO HANDLING — IMPORTANT:
    - Look carefully at the screenshot. If it shows a profile photo, avatar circle, headshot area, or any reserved space for a personal picture (typically near the name/header), you MUST include a photo slot.
