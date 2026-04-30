@@ -15,3 +15,11 @@ export const getAppRedirectUrl = (path = "") => {
 
   return new URL(`${basePath}${cleanPath}`, window.location.origin).toString();
 };
+
+export const getOAuthBrokerUrl = () => {
+  if (typeof window !== "undefined" && window.location.hostname.endsWith(".github.io")) {
+    return "https://doc-to-cv-ai.lovable.app/~oauth/initiate";
+  }
+
+  return "/~oauth/initiate";
+};
