@@ -32,8 +32,9 @@ REQUIREMENTS:
    {{#skills}} {{.}} {{/skills}}
    {{#languages}} {{name}} ... {{level}} {{/languages}}
    {{#projects}} {{name}} ... {{description}} ... {{link}} {{/projects}}
-6. Section headings should be readable plain text (e.g. "EXPERIENCE", "EDUCATION", "SKILLS") so the editor can detect and add/delete them.
-7. Make sure the design works even if some fields are empty.`;
+10. Section headings should be readable plain text (e.g. "EXPERIENCE", "EDUCATION", "SKILLS") so the editor can detect and add/delete them.
+11. Make sure the design works even if some fields are empty.
+12. NEVER include placeholder/sample text outside of the tokens above (no "John Doe", no "Lorem ipsum"). All real text must come from a {{token}}.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
