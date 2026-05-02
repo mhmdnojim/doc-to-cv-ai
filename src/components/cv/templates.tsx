@@ -3,10 +3,26 @@ import { Mail, Phone, MapPin, Globe } from "lucide-react";
 
 interface Props { data: CVData }
 
+// Person silhouette placeholder shown in photo slots when the user
+// hasn't uploaded a photo yet. Makes the slot visible so people know
+// where their photo will go.
+const PhotoPlaceholder = ({ className = "" }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="100" height="100" fill="#e5e7eb" />
+    <circle cx="50" cy="38" r="16" fill="#9ca3af" />
+    <path d="M20 88c0-17 13-28 30-28s30 11 30 28z" fill="#9ca3af" />
+  </svg>
+);
+
+const PhotoSlot = ({ src, className }: { src?: string; className: string }) =>
+  src
+    ? <img src={src} alt="" className={`${className} object-cover`} />
+    : <PhotoPlaceholder className={className} />;
+
 export const ModernTemplate = ({ data }: Props) => (
   <div className="flex min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <aside className="w-[260px] bg-gradient-to-b from-indigo-600 to-violet-600 text-white p-8">
-      {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full mb-6 object-cover border-4 border-white/20" />}
+      <PhotoSlot src={data.photo} className="w-32 h-32 rounded-full mb-6 border-4 border-white/20" />
       <h1 className="text-2xl font-bold leading-tight">{data.fullName || "Your Name"}</h1>
       <p className="text-indigo-100 mt-1 text-sm">{data.jobTitle}</p>
 
