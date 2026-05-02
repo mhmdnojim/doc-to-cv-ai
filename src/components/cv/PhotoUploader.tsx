@@ -8,7 +8,7 @@ import { Upload, Pencil, Trash2 } from "lucide-react";
 
 interface Props {
   photo?: string;
-  onChange: (dataUrl: string | undefined) => void;
+  onChange?: (dataUrl: string | undefined) => void;
 }
 
 async function getCroppedDataUrl(src: string, area: Area, outSize = 400): Promise<string> {
