@@ -350,7 +350,7 @@ export const TechTemplate = ({ data }: Props) => (
 export const ElegantTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-stone-900" style={{ fontFamily: "Georgia, serif" }}>
     <header className="bg-stone-100 px-12 py-10 flex items-center gap-8 border-b-4 border-stone-800">
-      {data.photo && <img src={data.photo} alt="" className="w-28 h-28 rounded-full object-cover ring-4 ring-white shadow-md" />}
+      <PhotoSlot src={data.photo} className="w-28 h-28 rounded-full ring-4 ring-white shadow-md" />
       <div>
         <h1 className="text-5xl font-bold tracking-wide">{data.fullName || "Your Name"}</h1>
         <p className="text-stone-600 italic mt-1 text-lg">{data.jobTitle}</p>
@@ -383,7 +383,7 @@ export const ElegantTemplate = ({ data }: Props) => (
 export const ProfessionalTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-slate-900 text-white p-10 flex items-center gap-6">
-      {data.photo && <img src={data.photo} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-white" />}
+      <PhotoSlot src={data.photo} className="w-24 h-24 rounded-full border-2 border-white" />
       <div className="flex-1">
         <h1 className="text-3xl font-bold uppercase tracking-wider">{data.fullName || "Your Name"}</h1>
         <p className="text-slate-300 mt-1">{data.jobTitle}</p>
@@ -427,7 +427,7 @@ export const ProfessionalTemplate = ({ data }: Props) => (
 export const CorporateTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans flex">
     <aside className="w-[280px] bg-blue-950 text-white p-8">
-      {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full object-cover mx-auto mb-6 border-4 border-blue-800" />}
+      <PhotoSlot src={data.photo} className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-blue-800" />
       <h1 className="text-2xl font-bold text-center">{data.fullName || "Your Name"}</h1>
       <p className="text-blue-200 text-sm text-center mt-1">{data.jobTitle}</p>
       <div className="h-px bg-blue-800 my-6" />
@@ -461,7 +461,7 @@ export const CorporateTemplate = ({ data }: Props) => (
 export const DesignerTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="bg-rose-100 p-10 flex items-center gap-8 relative">
-      {data.photo && <img src={data.photo} alt="" className="w-32 h-32 rounded-full object-cover ring-8 ring-white shadow-lg" />}
+      <PhotoSlot src={data.photo} className="w-32 h-32 rounded-full ring-8 ring-white shadow-lg" />
       <div>
         <h1 className="text-4xl font-light">{data.fullName || "Your Name"}</h1>
         <p className="text-rose-700 mt-1 tracking-widest uppercase text-sm">{data.jobTitle}</p>
@@ -611,7 +611,7 @@ export const PhotoTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <header className="relative h-[280px] bg-gradient-to-br from-teal-700 to-emerald-800 text-white">
       <div className="absolute inset-0 flex items-center gap-8 p-10">
-        {data.photo && <img src={data.photo} alt="" className="w-44 h-44 rounded-full object-cover ring-4 ring-white/30 shadow-2xl" />}
+        <PhotoSlot src={data.photo} className="w-44 h-44 rounded-full ring-4 ring-white/30 shadow-2xl" />
         <div>
           <h1 className="text-5xl font-bold">{data.fullName || "Your Name"}</h1>
           <p className="text-teal-100 text-xl mt-2">{data.jobTitle}</p>
