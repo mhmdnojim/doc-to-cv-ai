@@ -56,6 +56,10 @@ export const EditorRail = forwardRef<EditorRailHandle, Props>(({ templatesPanel,
   const { user } = useAuth();
   const [active, setActive] = useState<RailKey | null>("templates");
 
+  useImperativeHandle(ref, () => ({
+    openPanel: (key) => setActive(key),
+  }), []);
+
   // Magic Write state
   const [magicOpen, setMagicOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -534,4 +538,5 @@ export const EditorRail = forwardRef<EditorRailHandle, Props>(({ templatesPanel,
       )}
     </div>
   );
-};
+});
+EditorRail.displayName = "EditorRail";
