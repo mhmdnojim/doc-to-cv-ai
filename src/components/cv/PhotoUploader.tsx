@@ -133,7 +133,7 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Zoom</Label>
-            <Slider value={[zoom]} min={1} max={3} step={0.05} onValueChange={v => setZoom(v[0])} />
+            <Slider value={[zoom]} min={0.5} max={5} step={0.05} onValueChange={v => setZoom(v[0])} />
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
