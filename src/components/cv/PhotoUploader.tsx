@@ -122,6 +122,9 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
                 image={rawSrc}
                 crop={crop}
                 zoom={zoom}
+                minZoom={0.5}
+                maxZoom={5}
+                restrictPosition={false}
                 aspect={1}
                 cropShape="round"
                 showGrid={false}
