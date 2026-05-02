@@ -54,6 +54,7 @@ const Builder = () => {
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const editableRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<EditorRailHandle>(null);
   const pageRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [focusedPage, setFocusedPage] = useState(0);
   // HTML content for blank user-added pages, keyed by page index (>= measuredPages)
@@ -505,9 +506,36 @@ const Builder = () => {
 
 
 
+  // Built-in templates that include a photo slot. When the user picks one
+  // of these without having uploaded a photo, we auto-open the Photo panel
+  // so they immediately see where their photo will go.
+  const PHOTO_TEMPLATE_IDS = new Set<string>([
+    "modern", "elegant", "professional", "corporate", "designer", "photo",
+    "navarro", "mitchell", "flores", "cortes", "alvarez", "silva",
+    "wilson", "gallego", "zaliyanti", "choconta", "nasser", "perez",
+    "reyes", "tanaka", "okonkwo", "petrov", "dubois", "hassan",
+    "kovacs", "leclerc", "mendez", "navarro-pro", "grasso",
+    "gibbons", "gallego-pro", "mae-evans", "napolitani", "olivia-wilson",
+    "greta-dark", "alfredo",
+  ]);
+
   const handleTemplateChange = (t: string) => {
     setTemplate(t);
     setSearchParams({ template: t });
+
+    // Detect whether the chosen template has a photo slot:
+    //  - built-in: lookup table above
+    //  - user template: check the HTML for an <img> tag (auto-wire will fill it)
+    const userTpl = userTemplates.find(u => u.id === t);
+    const hasPhotoSlot = userTpl
+      ? /<img\b/i.test(userTpl.html)
+      : PHOTO_TEMPLATE_IDS.has(t);
+
+    if (hasPhotoSlot && !data.photo) {
+      // Open the Photo panel so the user can upload one immediately.
+      setTimeout(() => railRef.current?.openPanel("photo"), 100);
+      toast.info("This template has a photo slot — upload one in the Photo panel.", { duration: 4000 });
+    }
   };
 
   const saveBeforeExport = async () => {
