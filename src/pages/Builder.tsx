@@ -41,8 +41,43 @@ interface UserTemplate {
 }
 
 const Builder = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const [showAuthGate, setShowAuthGate] = useState(false);
+
+  // Require login to use the builder. Show the login dialog automatically
+  // when a logged-out user lands here, and render a friendly gate instead
+  // of the editor until they sign in.
+  useEffect(() => {
+    if (!authLoading && !user) setShowAuthGate(true);
+    if (user) setShowAuthGate(false);
+  }, [authLoading, user]);
+
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center bg-card border border-border rounded-2xl p-8 shadow-elegant">
+          <div className="w-12 h-12 rounded-xl bg-gradient-primary mx-auto mb-4 flex items-center justify-center">
+            <Lock className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Sign in to build your CV</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            You need an account to upload photos, edit, and save your resume.
+            Your data stays private to you.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => setShowAuthGate(true)} className="bg-gradient-primary">
+              Log in / Sign up
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/">Back home</Link>
+            </Button>
+          </div>
+          <LoginDialog open={showAuthGate} onOpenChange={setShowAuthGate} />
+        </div>
+      </div>
+    );
+  }
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTemplate = searchParams.get("template") || "modern";
   // template can be a built-in TemplateId OR a user template id (uuid). We treat it as string.
