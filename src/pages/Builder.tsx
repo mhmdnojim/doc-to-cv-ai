@@ -895,9 +895,12 @@ const Builder = () => {
         return (
           <div className="flex print:block h-[calc(100vh-4rem)] overflow-hidden">
             <EditorRail
+              ref={railRef}
               templatesPanel={templatesPanel}
               editorRef={editableRef}
               addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, addSectionAt, loadSample, clearAll }}
+              photo={data.photo}
+              onPhotoChange={(p) => { touch(); setData({ ...data, photo: p }); }}
             />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden overflow-y-auto overscroll-contain h-full">
