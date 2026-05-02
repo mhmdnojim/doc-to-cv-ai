@@ -52,7 +52,7 @@ const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
 const MIN_FONT = 8;
 const MAX_FONT = 72;
 
-export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
+export const EditorRail = forwardRef<EditorRailHandle, Props>(({ templatesPanel, editorRef, addActions, photo, onPhotoChange }, ref) => {
   const { user } = useAuth();
   const [active, setActive] = useState<RailKey | null>("templates");
 
