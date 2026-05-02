@@ -904,7 +904,7 @@ const Builder = () => {
               editorRef={editableRef}
               addActions={{ addExperience, addEducation, addSkill, addLanguage, addProject, addCustomSection, addSectionAt, loadSample, clearAll }}
               photo={data.photo}
-              onPhotoChange={(p) => { touch(); setData(d => ({ ...d, photo: p })); }}
+              onPhotoChange={(p) => { touch(); setData(d => ({ ...d, photo: p })); bumpData(); }}
             />
 
             <div className="flex-1 min-w-0 container py-6 print:hidden overflow-y-auto overscroll-contain h-full">
