@@ -23,7 +23,14 @@ async function getCroppedDataUrl(src: string, area: Area, outSize = 400): Promis
   canvas.width = outSize;
   canvas.height = outSize;
   const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, outSize, outSize);
+  // Fill with white so zoomed-out crops have a clean background instead of transparency
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, outSize, outSize);
+  const scale = outSize / area.width;
+  // Translate so the (possibly negative) area origin maps to canvas (0,0)
+  ctx.translate(-area.x * scale, -area.y * scale);
+  ctx.scale(scale, scale);
+  ctx.drawImage(img, 0, 0);
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
@@ -122,6 +129,9 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
                 image={rawSrc}
                 crop={crop}
                 zoom={zoom}
+                minZoom={0.5}
+                maxZoom={5}
+                restrictPosition={false}
                 aspect={1}
                 cropShape="round"
                 showGrid={false}
@@ -133,7 +143,7 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Zoom</Label>
-            <Slider value={[zoom]} min={1} max={3} step={0.05} onValueChange={v => setZoom(v[0])} />
+            <Slider value={[zoom]} min={0.5} max={5} step={0.05} onValueChange={v => setZoom(v[0])} />
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancel</Button>
