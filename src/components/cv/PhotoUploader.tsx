@@ -23,7 +23,14 @@ async function getCroppedDataUrl(src: string, area: Area, outSize = 400): Promis
   canvas.width = outSize;
   canvas.height = outSize;
   const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, outSize, outSize);
+  // Fill with white so zoomed-out crops have a clean background instead of transparency
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, outSize, outSize);
+  const scale = outSize / area.width;
+  // Translate so the (possibly negative) area origin maps to canvas (0,0)
+  ctx.translate(-area.x * scale, -area.y * scale);
+  ctx.scale(scale, scale);
+  ctx.drawImage(img, 0, 0);
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
