@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical } from "lucide-react";
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { NewSectionTemplate } from "@/lib/cv-section-tools";
 import { useAuth } from "@/hooks/useAuth";
+import { PhotoUploader } from "./PhotoUploader";
 
-type RailKey = "templates" | "add" | "text" | "magic";
+type RailKey = "templates" | "add" | "photo" | "text" | "magic";
 
 interface AddActions {
   addExperience: () => void;
@@ -30,11 +31,20 @@ interface Props {
   editorRef: React.RefObject<HTMLDivElement>;
   /** Section / sample actions, surfaced from Builder */
   addActions: AddActions;
+  /** Current photo data URL (or undefined) */
+  photo?: string;
+  /** Update the photo on the CV */
+  onPhotoChange: (photo: string | undefined) => void;
+}
+
+export interface EditorRailHandle {
+  openPanel: (key: "templates" | "add" | "photo" | "text") => void;
 }
 
 const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
   { key: "templates", label: "Templates", icon: LayoutTemplate },
   { key: "add",       label: "Add",       icon: PlusSquare },
+  { key: "photo",     label: "Photo",     icon: ImageIcon },
   { key: "text",      label: "Text",      icon: Type },
   { key: "magic",     label: "Magic Write", icon: Sparkles },
 ];
@@ -42,9 +52,13 @@ const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
 const MIN_FONT = 8;
 const MAX_FONT = 72;
 
-export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => {
+export const EditorRail = forwardRef<EditorRailHandle, Props>(({ templatesPanel, editorRef, addActions, photo, onPhotoChange }, ref) => {
   const { user } = useAuth();
   const [active, setActive] = useState<RailKey | null>("templates");
+
+  useImperativeHandle(ref, () => ({
+    openPanel: (key) => setActive(key),
+  }), []);
 
   // Magic Write state
   const [magicOpen, setMagicOpen] = useState(false);
@@ -280,6 +294,18 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
                   <button onClick={addActions.loadSample} className="text-primary hover:underline">Load sample</button>
                   <button onClick={addActions.clearAll} className="text-muted-foreground hover:text-destructive">Clear all</button>
                 </div>
+              </div>
+            )}
+
+            {active === "photo" && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Upload a photo to fill any photo slot in your CV. Templates without a photo slot will simply ignore it.
+                </p>
+                <PhotoUploader photo={photo} onChange={onPhotoChange} />
+                <p className="text-[10px] text-muted-foreground leading-relaxed pt-2 border-t border-border">
+                  <strong className="text-foreground">Tip:</strong> If you uploaded a community template that has an image, your photo is auto-placed into the first round/profile-shaped image — no setup needed.
+                </p>
               </div>
             )}
 
@@ -524,4 +550,5 @@ export const EditorRail = ({ templatesPanel, editorRef, addActions }: Props) => 
       )}
     </div>
   );
-};
+});
+EditorRail.displayName = "EditorRail";
