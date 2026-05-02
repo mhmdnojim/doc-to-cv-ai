@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical } from "lucide-react";
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import { LayoutTemplate, Type, Sparkles, X, Bold, Italic, Underline, Loader2, Wand2, Minus, Plus, ArrowRight, Copy, RotateCw, ArrowLeft, PlusSquare, MoveVertical, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { NewSectionTemplate } from "@/lib/cv-section-tools";
 import { useAuth } from "@/hooks/useAuth";
+import { PhotoUploader } from "./PhotoUploader";
 
-type RailKey = "templates" | "add" | "text" | "magic";
+type RailKey = "templates" | "add" | "photo" | "text" | "magic";
 
 interface AddActions {
   addExperience: () => void;
@@ -30,11 +31,20 @@ interface Props {
   editorRef: React.RefObject<HTMLDivElement>;
   /** Section / sample actions, surfaced from Builder */
   addActions: AddActions;
+  /** Current photo data URL (or undefined) */
+  photo?: string;
+  /** Update the photo on the CV */
+  onPhotoChange: (photo: string | undefined) => void;
+}
+
+export interface EditorRailHandle {
+  openPanel: (key: "templates" | "add" | "photo" | "text") => void;
 }
 
 const RAIL_ITEMS: { key: RailKey; label: string; icon: any }[] = [
   { key: "templates", label: "Templates", icon: LayoutTemplate },
   { key: "add",       label: "Add",       icon: PlusSquare },
+  { key: "photo",     label: "Photo",     icon: ImageIcon },
   { key: "text",      label: "Text",      icon: Type },
   { key: "magic",     label: "Magic Write", icon: Sparkles },
 ];
