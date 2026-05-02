@@ -225,7 +225,11 @@ const Builder = () => {
 
   // Show sample data when CV is empty, or whenever the user toggles "Use sample data".
   const isEmptyCv = !data.fullName && !data.jobTitle && data.experience.length === 0 && data.education.length === 0 && data.skills.length === 0;
-  const previewData = (useSampleData || isEmptyCv) ? SAMPLE_CV : data;
+  // Always honor the user's uploaded photo, even when we're showing sample data
+  // (otherwise uploading a photo on a fresh CV appears to do nothing).
+  const previewData = (useSampleData || isEmptyCv)
+    ? { ...SAMPLE_CV, photo: data.photo || SAMPLE_CV.photo }
+    : data;
 
   // Tracks the placeholder text of the most recently added item — used to auto-focus it
   const [pendingFocusText, setPendingFocusText] = useState<string | null>(null);
