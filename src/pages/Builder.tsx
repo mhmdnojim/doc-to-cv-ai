@@ -5,7 +5,7 @@ import { CVPreview } from "@/components/cv/CVPreview";
 import { AIUploader } from "@/components/cv/AIUploader";
 import { LoginDialog } from "@/components/auth/LoginDialog";
 import { TemplateUploadDialog } from "@/components/cv/TemplateUploadDialog";
-import { EditorRail } from "@/components/cv/EditorRail";
+import { EditorRail, type EditorRailHandle } from "@/components/cv/EditorRail";
 import { CVData, EMPTY_CV, SAMPLE_CV, TEMPLATES, TemplateId } from "@/lib/cv-types";
 import { ArrowLeft, Download, FileText, LayoutTemplate, X, Check, Plus, Sparkles, Upload, Trash2, Pencil, ImagePlus, Eye, EyeOff, ShieldCheck, FilePlus, ChevronUp, ChevronDown, Copy, FileCode, FileType, Undo2, Redo2, Lock, Unlock } from "lucide-react";
 import { AuthPill } from "@/components/AuthPill";
