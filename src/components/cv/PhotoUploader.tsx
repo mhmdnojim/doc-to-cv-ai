@@ -52,6 +52,10 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
   const handleSave = async () => {
     if (!rawSrc || !croppedArea) return;
     const out = await getCroppedDataUrl(rawSrc, croppedArea);
+    if (typeof onChange !== "function") {
+      console.error("[PhotoUploader] onChange prop missing");
+      return;
+    }
     onChange(out);
     setEditorOpen(false);
     setRawSrc(null);
@@ -85,7 +89,7 @@ export const PhotoUploader = ({ photo, onChange }: Props) => {
               <Button type="button" size="sm" variant="outline" onClick={openEditExisting}>
                 <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
               </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => onChange(undefined)}>
+              <Button type="button" size="sm" variant="ghost" onClick={() => onChange?.(undefined)}>
                 <Trash2 className="w-3.5 h-3.5 mr-1" /> Remove
               </Button>
             </>
