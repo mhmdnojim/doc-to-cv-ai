@@ -297,6 +297,18 @@ export const EditorRail = forwardRef<EditorRailHandle, Props>(({ templatesPanel,
               </div>
             )}
 
+            {active === "photo" && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Upload a photo to fill any photo slot in your CV. Templates without a photo slot will simply ignore it.
+                </p>
+                <PhotoUploader photo={photo} onChange={onPhotoChange} />
+                <p className="text-[10px] text-muted-foreground leading-relaxed pt-2 border-t border-border">
+                  <strong className="text-foreground">Tip:</strong> If you uploaded a community template that has an image, your photo is auto-placed into the first round/profile-shaped image — no setup needed.
+                </p>
+              </div>
+            )}
+
             {active === "text" && (
               <div className="space-y-4">
                 <p className="text-xs text-muted-foreground">
