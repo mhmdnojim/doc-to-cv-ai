@@ -1668,7 +1668,7 @@ export const KovacsTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-white text-slate-900 font-sans">
     <div className="grid grid-cols-12">
       <aside className="col-span-5 bg-[#1c1c1c] text-white p-8 min-h-[297mm]">
-        <Avatar src={data.photo} className="w-36 h-36 rounded-none object-cover mb-6 grayscale" />
+        <Avatar src={data.photo} className="w-36 h-36 rounded-none object-cover mb-6" />
         <h1 className="text-3xl font-black uppercase leading-none">{data.fullName || "Your Name"}</h1>
         <div className="w-12 h-1 bg-[#ffd23f] my-3" />
         <p className="text-[#ffd23f] uppercase tracking-[0.25em] text-xs">{data.jobTitle}</p>
@@ -2333,7 +2333,7 @@ export const OliviaWilsonTemplate = ({ data }: Props) => (
   <div className="min-h-[297mm] w-[210mm] bg-[#f4f1ec] text-stone-900 font-serif p-10">
     <header className="grid grid-cols-12 gap-6 items-center pb-5 border-b border-stone-300">
       <div className="col-span-3">
-        <Avatar src={data.photo} className="w-28 h-28 rounded-full object-cover grayscale" />
+        <Avatar src={data.photo} className="w-28 h-28 rounded-full object-cover" />
       </div>
       <div className="col-span-9">
         <h1 className="text-5xl font-light tracking-[0.15em] uppercase">{data.fullName || "Your Name"}</h1>
